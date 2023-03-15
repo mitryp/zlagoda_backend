@@ -10,7 +10,8 @@
   
   "scripts": {
     "start": "node main.js",
-    "test": "echo Not today"
+    "test": "echo Not today",
+    "clone-front": "rmdir zlagoda_frontend /s /q && git clone https://github.com/mitryp/zlagoda_frontend -b presentation"
   },
 
   "dependencies": {
