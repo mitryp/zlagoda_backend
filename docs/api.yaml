@@ -1,0 +1,736 @@
+swagger: "2.0"
+info:
+  title: Zlagoda API
+  description: 
+    The API description for AIS
+  version: 1.0.0
+schemes:
+  - http
+produces:
+  - application/json
+paths:
+  /employees:
+    get:
+      summary: Отримати список працівників
+      tags: [Employees]
+      parameters:
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/sort_order'
+
+      responses:
+        200:
+          description: Список працівників магазину (менеджери та касири)
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Employee'
+        401:
+          $ref: '#/responses/401-Anauthorized'
+    post:
+      summary: Створити нового працівника
+      tags: [Employees]
+      parameters:
+        - name: data
+          in: body
+          schema: 
+            $ref: '#/definitions/Employee'
+      consumes:
+        - application/json
+      responses:
+        201:
+          description: Created
+          schema:
+            $ref: '#/definitions/Employee'
+        400:
+          $ref: '#/responses/400-Bad-Request'
+        401:
+          $ref: '#/responses/401-Anauthorized'
+
+  /employees/{id}:
+    get:
+      summary: Отримати інформацію про працівника за його id
+      tags: [Employees]
+      parameters:
+        - $ref: '#/parameters/id'
+      responses:
+        200:
+          description: ОК
+          schema: 
+            $ref: '#/definitions/Employee'
+        400: 
+          $ref: '#/responses/400-Bad-Request'
+        401:
+          $ref: '#/responses/401-Anauthorized'
+        404: 
+          $ref: '#/responses/404-Not-Found'
+          
+    put:
+      summary: Оновити інформацію про існуючого працівника
+      tags: [Employees]
+      parameters:
+        - $ref: '#/parameters/id'
+        - name: data
+          in: body
+          schema:
+            $ref: '#/definitions/Employee'
+      responses:
+        200:
+          description: Updated
+        400:
+          $ref: '#/responses/400-Bad-Request'
+        401:
+          $ref: '#/responses/401-Anauthorized'
+        404:
+          $ref: '#/responses/404-Not-Found'
+    
+    delete:
+      summary: Видалити інформацію про існуючого працівника
+      tags: [Employees]
+      parameters:
+        - $ref: '#/parameters/id'
+      responses:
+        200:
+          description: Deleted
+        400:
+          $ref: '#/responses/400-Bad-Request'
+        401:
+          $ref: '#/responses/401-Anauthorized'
+        404:
+          $ref: '#/responses/404-Not-Found'
+    
+        
+  /goods_types:
+    get:
+      summary: Отримати список типів товарів
+      tags: [Goods types]
+      parameters:
+        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/sort_order'
+        
+      responses:
+        200:
+          description: Список типів товарів
+          schema:
+            type: array
+            items: 
+              $ref: '#/definitions/GoodsType'
+        401:
+          $ref: '#/responses/401-Anauthorized'
+    post:
+      summary: Створити новий тип товарів
+      tags: [Goods types]
+      parameters:
+        - name: data
+          in: body
+          schema: 
+            $ref: '#/definitions/GoodsType'
+      responses:
+        201:
+          description: Created
+          schema:
+            $ref: '#/definitions/GoodsType'
+        400:
+          $ref: '#/responses/400-Bad-Request'
+        401:
+          $ref: '#/responses/401-Anauthorized'
+          
+  /goods_types/{id}:
+    get:
+      summary: Отримати інформацію про тип товару за його id
+      tags: [Goods types]
+      parameters:
+        - $ref: '#/parameters/id'
+      responses:
+        200:
+          description: ОК
+          schema:
+            $ref: '#/definitions/GoodsTypeWithCategory'
+        400:
+          $ref: '#/responses/400-Bad-Request'
+        401:
+          $ref: '#/responses/401-Anauthorized'
+        404: 
+          $ref: '#/responses/404-Not-Found'
+    
+    put:
+      summary: Оновити інформацію про існуючий тип товару
+      tags: [Goods types]
+      parameters:
+        - $ref: '#/parameters/id'
+        - name: data
+          in: body
+          schema:
+            $ref: '#/definitions/GoodsType'
+      responses:
+        200:
+          description: Updated
+        400:
+          $ref: '#/responses/400-Bad-Request'
+        401:
+          $ref: '#/responses/401-Anauthorized'
+        404:
+          $ref: '#/responses/404-Not-Found'
+    
+    delete:
+      summary: Видалити інформацію про існуючий тип товару
+      tags: [Goods types]
+      parameters:
+        - $ref: '#/parameters/id'
+      responses:
+        200:
+          description: Deleted
+        400:
+          $ref: '#/responses/400-Bad-Request'
+        401:
+          $ref: '#/responses/401-Anauthorized'
+        404:
+          $ref: '#/responses/404-Not-Found'
+          
+          
+  /goods:
+    get:
+      summary: Отримати список товарів у магазині
+      tags: [Goods]
+      parameters:
+        - $ref: '#/parameters/sort_order'
+        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/limit'
+        - name: type
+          in: query
+          type: string
+          enum: [all, prom, no_prom]
+          default: all
+      responses:
+        200:
+          description: Список товарів
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Goods'
+        401:
+          $ref: '#/responses/401-Anauthorized'
+    post:
+      summary: Створити новий товар
+      tags: [Goods]
+      parameters:
+        - name: data
+          in: body
+          schema: 
+            $ref: '#/definitions/Goods'
+      responses:
+        201:
+          description: Created
+          schema:
+            $ref: '#/definitions/Goods'
+        400:
+          $ref: '#/responses/400-Bad-Request'
+        401:
+          $ref: '#/responses/401-Anauthorized'
+          
+  /goods/{id}:
+    get:
+      summary: Отримати інформацію про товар за його id
+      tags: [Goods]
+      parameters:
+        - $ref: '#/parameters/id'
+      responses:
+        200:
+          description: ОК
+          schema:
+            $ref: '#/definitions/JoinedGoods'
+        400:
+          $ref: '#/responses/400-Bad-Request'
+        401:
+          $ref: '#/responses/401-Anauthorized'
+        404: 
+          $ref: '#/responses/404-Not-Found'
+
+    put:
+      summary: Оновити інформацію про існуючий товар
+      tags: [Goods]
+      parameters:
+        - $ref: '#/parameters/id'
+        - name: data
+          in: body
+          schema:
+            $ref: '#/definitions/Goods'
+      responses:
+        200:
+          description: Updated
+        400:
+          $ref: '#/responses/400-Bad-Request'
+        401:
+          $ref: '#/responses/401-Anauthorized'
+        404:
+          $ref: '#/responses/404-Not-Found'
+    
+    delete:
+      summary: Видалити інформацію про існуючий товар
+      tags: [Goods]
+      parameters:
+        - $ref: '#/parameters/id'
+      responses:
+        200:
+          description: Deleted
+        400:
+          $ref: '#/responses/400-Bad-Request'
+        401:
+          $ref: '#/responses/401-Anauthorized'
+        404:
+          $ref: '#/responses/404-Not-Found'
+  
+  
+  /categories:
+    get:
+      summary: Отримати список категорій товарів
+      tags: [Categories]
+      parameters:
+        - $ref: '#/parameters/sort_order'
+        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/limit'
+      responses:
+        200:
+          description: Список категорій
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/GoodsCategory'
+        401:
+          $ref: '#/responses/401-Anauthorized'
+    post:
+      summary: Створити нову категорію
+      tags: [Categories]
+      parameters:
+        - name: data
+          in: body
+          schema: 
+            $ref: '#/definitions/Goods'
+      responses:
+        201:
+          description: Created
+          schema:
+            $ref: '#/definitions/Goods'
+        400:
+          $ref: '#/responses/400-Bad-Request'
+        401:
+          $ref: '#/responses/401-Anauthorized'
+
+  /categories/{id}:
+    get:
+      summary: Отримати інформацію про категорію товарів за її id
+      tags: [Categories]
+      parameters:
+        - $ref: '#/parameters/id'
+      responses:
+        200:
+          description: ОК
+          schema:
+            $ref: '#/definitions/GoodsCategory'
+        400:
+          $ref: '#/responses/400-Bad-Request'
+        401:
+          $ref: '#/responses/401-Anauthorized'
+        404: 
+          $ref: '#/responses/404-Not-Found'
+
+    put:
+      summary: Оновити інформацію про існуючу категорію товарів
+      tags: [Categories]
+      parameters:
+        - $ref: '#/parameters/id'
+        - name: data
+          in: body
+          schema:
+            $ref: '#/definitions/GoodsCategory'
+      responses:
+        200:
+          description: Updated
+        400:
+          $ref: '#/responses/400-Bad-Request'
+        401:
+          $ref: '#/responses/401-Anauthorized'
+        404:
+          $ref: '#/responses/404-Not-Found'
+    
+    delete:
+      summary: Видалити інформацію про існуючу категорію товарів
+      tags: [Categories]
+      parameters:
+        - $ref: '#/parameters/id'
+      responses:
+        200:
+          description: Deleted
+        400:
+          $ref: '#/responses/400-Bad-Request'
+        401:
+          $ref: '#/responses/401-Anauthorized'
+        404:
+          $ref: '#/responses/404-Not-Found'
+      
+          
+  /clients:
+    get:
+      summary: Отримати список постійних клієнтів
+      tags: [Clients]
+      parameters:
+        - $ref: '#/parameters/sort_order'
+        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/limit'
+      responses:
+        200:
+          description: Список клієнтів
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Client'
+        401:
+          $ref: '#/responses/401-Anauthorized'
+    post:
+      summary: Створити нового клієнта
+      tags: [Clients]
+      parameters:
+        - name: data
+          in: body
+          schema: 
+            $ref: '#/definitions/Client'
+      responses:
+        201:
+          description: Created
+          schema:
+            $ref: '#/definitions/Client'
+        400:
+          $ref: '#/responses/400-Bad-Request'
+        401:
+          $ref: '#/responses/401-Anauthorized'
+          
+  /clients/{id}:
+    get:
+      summary: Отримати інформацію про постійного клієнта за його id
+      tags: [Clients]
+      parameters:
+        - $ref: '#/parameters/id'
+      responses:
+        200:
+          description: ОК
+          schema:
+            $ref: '#/definitions/Client'
+        400:
+          $ref: '#/responses/400-Bad-Request'
+        401:
+          $ref: '#/responses/401-Anauthorized'
+        404: 
+          $ref: '#/responses/404-Not-Found'
+
+    put:
+      summary: Оновити інформацію про існуючого постійного клієнта
+      tags: [Clients]
+      parameters:
+        - $ref: '#/parameters/id'
+        - name: data
+          in: body
+          schema:
+            $ref: '#/definitions/Client'
+      responses:
+        200:
+          description: Updated
+        400:
+          $ref: '#/responses/400-Bad-Request'
+        401:
+          $ref: '#/responses/401-Anauthorized'
+        404:
+          $ref: '#/responses/404-Not-Found'
+    
+    delete:
+      summary: Видалити інформацію про існуючого постійного клієнта
+      tags: [Clients]
+      parameters:
+        - $ref: '#/parameters/id'
+      responses:
+        200:
+          description: Deleted
+        400:
+          $ref: '#/responses/400-Bad-Request'
+        401:
+          $ref: '#/responses/401-Anauthorized'
+        404:
+          $ref: '#/responses/404-Not-Found'
+    
+    
+  /receipts:
+    get:
+      summary: Отримати список чеків
+      tags: [Receipts]
+      parameters:
+        - $ref: '#/parameters/sort_order'
+        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/limit'
+      responses:
+        200:
+          description: Список чеків
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Receipt'
+        401:
+          $ref: '#/responses/401-Anauthorized'
+    post:
+      summary: Створити новий чек
+      tags: [Receipts]
+      parameters:
+        - name: data
+          in: body
+          schema: 
+            $ref: '#/definitions/Receipt'
+      responses:
+        201:
+          description: Created
+          schema:
+            $ref: '#/definitions/Client'
+        400:
+          $ref: '#/responses/400-Bad-Request'
+        401:
+          $ref: '#/responses/401-Anauthorized'
+    
+  /receipts/{id}:
+    get:
+      summary: Отримати інформацію про чек за його id
+      tags: [Receipts]
+      parameters:
+        - $ref: '#/parameters/id'
+      responses:
+        200:
+          description: ОК
+          schema:
+            $ref: '#/definitions/JoinedReceipt'
+        400:
+          $ref: '#/responses/400-Bad-Request'
+        401:
+          $ref: '#/responses/401-Anauthorized'
+        404: 
+          $ref: '#/responses/404-Not-Found'
+
+    put:
+      summary: Оновити інформацію про існуючий чек
+      tags: [Receipts]
+      parameters:
+        - $ref: '#/parameters/id'
+        - name: data
+          in: body
+          schema:
+            $ref: '#/definitions/Receipt'
+      responses:
+        200:
+          description: Updated
+        400:
+          $ref: '#/responses/400-Bad-Request'
+        401:
+          $ref: '#/responses/401-Anauthorized'
+        404:
+          $ref: '#/responses/404-Not-Found'
+    
+    delete:
+      summary: Видалити інформацію про існуючий чек
+      tags: [Receipts]
+      parameters:
+        - $ref: '#/parameters/id'
+      responses:
+        200:
+          description: Deleted
+        400:
+          $ref: '#/responses/400-Bad-Request'
+        401:
+          $ref: '#/responses/401-Anauthorized'
+        404:
+          $ref: '#/responses/404-Not-Found'      
+          
+          
+          
+parameters:
+  offset:
+    name: offset
+    in: query
+    required: false
+    type: integer
+    minimum: 0
+    default: 0
+    
+  limit:
+    name: limit
+    in: query
+    required: false
+    type: integer
+    minimum: 1
+    maximum: 100
+    default: 20
+    
+  sort_order:
+    name: sort_order
+    in: query
+    required: false
+    type: string
+    default: "asc"
+    enum: [asc, desc]
+  
+  id:
+    name: id
+    in: path
+    type: integer
+    minimum: 0
+    required: true
+    
+  query:
+    name: query
+    in: query
+    type: string
+    required: false
+    
+responses:
+  400-Bad-Request:
+    description: Bad Request
+  401-Anauthorized:
+    description: Invalid Authorization
+  404-Not-Found:
+    description: Not Found
+
+definitions:
+  Address:
+    properties:
+      city:
+        type: string
+      street:
+        type: string
+      index: 
+        type: string
+  
+  Name:
+    properties:
+      firstName:
+        type: string
+      middleName:
+        type: string
+      lastName:
+        type: string
+
+  Employee:
+    properties:
+      employeeId:
+        type: integer
+      name:
+        $ref: '#/definitions/Name'
+      position:
+        type: string
+        enum: [cashier, manager]
+      salary:
+        type: number
+      workStartDate:
+        type: integer
+        description: Milliseconds since Unix epoch
+      birthDate:
+        type: integer
+        description: Milliseconds since Unix epoch
+      phone:
+        type: string
+      address:
+        $ref: '#/definitions/Address'
+  
+  GoodsType:
+    properties:
+      typeId:
+        type: integer
+      name:
+        type: string
+      manufacturer:
+        type: string
+      specs:
+        type: string
+      categoryId:
+        type: integer
+        
+  GoodsCategory:
+    properties:
+      categoryId:
+        type: integer
+      categoryName:
+        type: string
+  
+  GoodsTypeWithCategory:
+    allOf: 
+      - $ref: '#/definitions/GoodsType'
+      - $ref: '#/definitions/GoodsCategory'
+  
+  Goods:
+    properties:
+      upc:
+        type: integer
+      typeId:
+        type: integer
+      price:
+        type: number
+      quantity:
+        type: integer
+        minimum: 0
+      isProm:
+        type: boolean
+        
+  JoinedGoods:
+    allOf: 
+      - $ref: '#/definitions/GoodsTypeWithCategory'
+      - type: object
+        properties:
+          goods:
+            type: array
+            items:
+              $ref: '#/definitions/Goods'
+  
+  Client:
+    properties:
+      clientId:
+        type: integer
+      name:
+        $ref: '#/definitions/Name'
+      phone:
+        type: string
+      address:
+        $ref: '#/definitions/Address'
+      discount:
+        type: number
+          
+  Receipt:
+    properties:
+      receiptId:
+        type: integer
+      date:
+        type: integer
+      amount:
+        type: number
+      tax:
+        type: number
+      clientId:
+        type: integer
+      employeeId:
+        type: integer
+      goodsIds:
+        type: array
+        items:
+          type: integer
+  
+  JoinedReceipt:
+    allOf: 
+      - $ref: '#/definitions/Receipt'
+      - $ref: '#/definitions/Client'
+      - $ref: '#/definitions/Employee'
+      - type: object
+        properties:
+          goods:
+            type: array
+            items:
+              $ref: '#/definitions/Goods'
+  
+  
+  
+  
+  
+
+  
