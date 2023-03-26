@@ -4,36 +4,47 @@ const cors = require("cors");
 const path = require("path");
 const dotenv = require("dotenv");
 dotenv.config();
+const initSchema = require("./dataSchema");
 
-// middleware setup
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+/**
+ * Starts the server.
+ */
+async function startServer() {
+    // middleware setup
+    app.use(cors());
+    app.use(express.json());
+    app.use(express.urlencoded({ extended: false }));
 
-// frontend serving setup
-app.get("/", (req, res) => {
-    res.sendFile("index.html", {
-        root: process.env.PUBLIC_DIR,
+    // frontend serving setup
+    app.get("/", (req, res) => {
+        res.sendFile("index.html", {
+            root: process.env.PUBLIC_DIR,
+        });
     });
-});
-app.use(express.static(process.env.PUBLIC_DIR));
-app.use((req, res) => {
-    res.redirect("/");
-});
+    app.use(express.static(process.env.PUBLIC_DIR));
+    app.use((req, res) => {
+        res.redirect("/");
+    });
 
-// api routes
-// employee
+    // database initialization
+    await initSchema();
 
-// product
+    // api routes
+    // employee
 
-// store_product
+    // product
 
-// category
+    // store_product
 
-// customer_card
+    // category
 
-// receipt
+    // customer_card
 
-app.listen(process.env.PORT, () => {
-    console.log(`Start app, listening at http://localhost:${process.env.PORT}`);
-});
+    // receipt
+
+    app.listen(process.env.PORT, () => {
+        console.log(`Start app, listening at http://localhost:${process.env.PORT}`);
+    });
+}
+
+startServer();
