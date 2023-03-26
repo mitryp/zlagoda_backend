@@ -2,19 +2,21 @@
   "name": "zlagoda_backend",
   "version": "1.0.0",
   "description": "Zlagoda Backend server with ExpressJS",
-  
   "author": "Artem Novak, Kateryna Verkhohliad, Dmytro Popov",
   "license": "UNLICENSED",
-
   "main": "main.js",
-  
   "scripts": {
     "start": "node main.js",
     "test": "echo Not today",
     "clone-front": "rmdir zlagoda_frontend /s /q && git clone https://github.com/mitryp/zlagoda_frontend -b presentation"
   },
-
   "dependencies": {
-    "express": "^4.18.2"
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "sqlite3": "^5.1.6"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.21"
   }
 }
