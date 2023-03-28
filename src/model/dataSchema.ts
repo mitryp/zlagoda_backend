@@ -1,17 +1,17 @@
-const sqlite3 = require("sqlite3").verbose();
-const fs = require("fs");
-const dotenv = require("dotenv");
-dotenv.config();
-const Repository = require("./repositories/repository");
+import {OPEN_CREATE, OPEN_READWRITE} from "sqlite3";
+import * as fs from 'fs';
+import * as dotenv from 'dotenv';
 
-/**
- * Generates the database.
- */
-async function generate() {
+import {DbHelpers} from "./dbHelpers";
+
+dotenv.config();
+
+
+async function generateDb(): Promise<void> {
     console.log("Generating database schema");
-    const db = await Repository.openDB(
+    const db = await DbHelpers.openDB(
         "Open database connection",
-        sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE
+        OPEN_READWRITE | OPEN_CREATE
     );
 
     // Category
@@ -21,7 +21,7 @@ async function generate() {
             category_name TEXT NOT NULL CHECK (LENGTH(category_name) <= 50)
         )
     `;
-    await Repository.run(db, query, "Create table Category");
+    await DbHelpers.run(db, query, "Create table Category");
 
     // Product
     query = `
@@ -36,7 +36,7 @@ async function generate() {
                 ON DELETE RESTRICT
         ) WITHOUT ROWID
     `;
-    await Repository.run(db, query, "Create table Product");
+    await DbHelpers.run(db, query, "Create table Product");
 
     // Store_Product
     query = `
@@ -58,7 +58,7 @@ async function generate() {
                 ON DELETE RESTRICT
         )
     `;
-    await Repository.run(db, query, "Create table Store_Product");
+    await DbHelpers.run(db, query, "Create table Store_Product");
 
     // Employee
     query = `
@@ -86,7 +86,7 @@ async function generate() {
             )
         ) WITHOUT ROWID
     `;
-    await Repository.run(db, query, "Create table Employee");
+    await DbHelpers.run(db, query, "Create table Employee");
 
     // Customer_Card
     query = `
@@ -106,7 +106,7 @@ async function generate() {
             )
         ) WITHOUT ROWID
     `;
-    await Repository.run(db, query, "Create table Customer_Card");
+    await DbHelpers.run(db, query, "Create table Customer_Card");
 
     // Receipt (renamed from Check because Check causes a syntax error in SQLite)
     query = `
@@ -125,7 +125,7 @@ async function generate() {
                 ON DELETE RESTRICT
         ) WITHOUT ROWID
     `;
-    await Repository.run(db, query, "Create table Receipt");
+    await DbHelpers.run(db, query, "Create table Receipt");
 
     // Sale
     query = `
@@ -145,24 +145,18 @@ async function generate() {
                 ON DELETE CASCADE
         ) WITHOUT ROWID
     `;
-    await Repository.run(db, query, "Create table Sale");
+    await DbHelpers.run(db, query, "Create table Sale");
 
-    await Repository.closeDB(db, "Close database connection");
+    await DbHelpers.closeDB(db, "Close database connection");
     console.log("Finish generating database schema");
 }
 
-/**
- * Initializes the database (i.e. generates, but only when the file does not exist).
- */
-async function initialize() {
+export async function initDbIfNotExists(): Promise<void> {
     try {
         const exists = fs.existsSync(process.env.DB_PATH);
-        if (!exists) await generate();
-    }
-    catch (err) {
+        if (!exists) return generateDb();
+    } catch (err) {
         console.error(err);
         process.exit(1);
     }
 }
-
-module.exports = initialize;

@@ -1,11 +1,13 @@
-const sqlite3 = require("sqlite3").verbose();
-const dotenv = require("dotenv");
+import {Database, OPEN_READONLY} from 'sqlite3';
+import * as dotenv from 'dotenv';
+
 dotenv.config();
+
 
 /**
  * Class encapsulating common functionality for accessing the database.
  */
-class Repository {
+export class DbHelpers {
     /**
      * Establishes a new database connection, logging success or failure.
      * @param {string} successMsg - Message to log in console on success.
@@ -13,11 +15,11 @@ class Repository {
      * @returns {Promise<Database>} Promise that resolves with the newly established connection.
      */
     static async openDB(
-        successMsg = "Establish database connection",
-        sqliteFlags = sqlite3.OPEN_READONLY
-    ) {
-        return new Promise((resolve, reject) => {
-            const db = new sqlite3.Database(process.env.DB_PATH, sqliteFlags, (err) => {
+        successMsg: string = "Establish database connection",
+        sqliteFlags: number = OPEN_READONLY
+    ): Promise<Database> {
+        return new Promise<Database>((resolve, reject) => {
+            const db = new Database(process.env.DB_PATH, sqliteFlags, (err) => {
                 if (err) {
                     console.error(err);
                     reject(err);
@@ -31,12 +33,12 @@ class Repository {
 
     /**
      * Closes an existing database connection, logging success or failure.
-     * @param {Database} - Database connection to be closed.
+     * @param {Database} db - Database connection to be closed.
      * @param {string} successMsg - Message to log in console on success.
-     * @returns {Promise<null>} Promise that resolves with a null.
+     * @returns {Promise<void>} Void Promise.
      */
-    static async closeDB(db, successMsg = "Close database connection") {
-        return new Promise((resolve, reject) => {
+    static async closeDB(db: Database, successMsg: string = "Close database connection"): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
             db.close((err) => {
                 if (err) {
                     console.error(err);
@@ -55,10 +57,10 @@ class Repository {
      * @param {string} query - DDL or DML-write query.
      * @param {string} successMsg - Message to log in console on success.
      * @param {Array} params - What question marks will be substituted with in a query (protecting from SQL injection).
-     * @returns {Promise<null>} Promise that resolves with a null.
+     * @returns {Promise<void>} Void Promise.
      */
-    static async run(db, query, successMsg, params = []) {
-        return new Promise((resolve, reject) => {
+    static async run(db: Database, query: string, successMsg: string, params: unknown[] = []): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
             db.run(query, params, (err) => {
                 if (err) {
                     console.error(err);
@@ -79,8 +81,8 @@ class Repository {
      * @param {Array} params - What question marks will be substituted with in a query (protecting from SQL injection).
      * @returns {Promise<Array<Object>>} Promise that resolves with the resulting array of rows.
      */
-    static async select(db, query, successMsg, params = []) {
-        return new Promise((resolve, reject) => {
+    static async select(db: Database, query: string, successMsg: string, params: unknown[] = []): Promise<Object[]> {
+        return new Promise<Object[]>((resolve, reject) => {
             db.all(query, params, (err, rows) => {
                 if (err) {
                     console.error(err);
@@ -93,5 +95,3 @@ class Repository {
         });
     }
 }
-
-module.exports = Repository;
