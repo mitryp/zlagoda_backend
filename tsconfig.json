@@ -3,10 +3,11 @@
     "module": "commonjs",
     "target": "esnext",
     "allowJs": true,
-    "outDir": "dist"
+    "outDir": "dist",
   },
   "exclude": [
     "node_modules",
-    "zlagoda_frontend"
+    "zlagoda_frontend",
+    "dist"
   ]
 }

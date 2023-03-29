@@ -34,7 +34,7 @@ async function startServer(): Promise<void> {
     // middleware setup
     app.use(cors());
     app.use(express.json());
-    app.use(express.urlencoded({ extended: false }));
+    app.use(express.urlencoded({extended: false}));
     app.use(express.static(process.env.PUBLIC_DIR));
     app.use((req, res) => res.redirect("/"));
 
@@ -65,6 +65,9 @@ async function startServer(): Promise<void> {
     app.listen(process.env.PORT, () => {
         console.log(`Start app, listening at http://localhost:${process.env.PORT}`);
     });
+
+    // repository demonstration
+    // testCategories();
 }
 
 startServer();
