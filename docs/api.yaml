@@ -677,12 +677,7 @@ definitions:
   JoinedGoods:
     allOf: 
       - $ref: '#/definitions/GoodsTypeWithCategory'
-      - type: object
-        properties:
-          goods:
-            type: array
-            items:
-              $ref: '#/definitions/Goods'
+      - $ref: '#/definitions/Goods'
   
   Client:
     properties:
