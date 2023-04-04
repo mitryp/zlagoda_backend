@@ -670,6 +670,8 @@ definitions:
         type: string
       address:
         $ref: '#/definitions/Address'
+      login:
+        type: string
 
   SearchProduct:
     properties:
