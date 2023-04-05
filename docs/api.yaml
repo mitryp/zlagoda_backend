@@ -8,7 +8,33 @@ schemes:
   - http
 produces:
   - application/json
+security: [BearerAuth: []]
 paths:
+  /login:
+    post:
+      summary: Виконати вхід за допомогою Basic Authentication
+      tags: [Service]
+      security: [BasicAuth: []]
+      responses:
+        200: 
+          description: Вхід виконано успішно
+          schema:
+            $ref: '#/definitions/User'
+        401:
+          description: Некоректні облікові дані
+
+  /login/token:
+    post:
+      summary: Валідувати Bearer token, отриманий з клієнту
+      tags: [Service]
+      security: [BearerAuth: []]
+      responses:
+        200: 
+          description: Токен валідний
+        401:
+          description: Токен невалідний
+
+
   /employees:
     get:
       summary: Отримати список працівників
@@ -18,7 +44,6 @@ paths:
         - $ref: '#/parameters/offset'
         - $ref: '#/parameters/sort_order'
         - $ref: '#/parameters/sort_field'
-
       responses:
         200:
           description: Список працівників магазину (менеджери та касири)
@@ -107,8 +132,8 @@ paths:
           $ref: '#/responses/403-Forbidden'
         404:
           $ref: '#/responses/404-Not-Found'
-    
-        
+
+
   /products:
     get:
       summary: Отримати список типів товарів
@@ -148,7 +173,7 @@ paths:
           $ref: '#/responses/401-Anauthorized'
         403:
           $ref: '#/responses/403-Forbidden'
-          
+
   /products/{id}:
     get:
       summary: Отримати інформацію про тип товару за його id
@@ -204,8 +229,8 @@ paths:
           $ref: '#/responses/403-Forbidden'
         404:
           $ref: '#/responses/404-Not-Found'
-          
-          
+
+
   /store_products:
     get:
       summary: Отримати список товарів у магазині
@@ -245,7 +270,7 @@ paths:
           $ref: '#/responses/401-Anauthorized'
         403:
           $ref: '#/responses/403-Forbidden'
-          
+
   /store_products/{id}:
     get:
       summary: Отримати інформацію про товар за його id
@@ -573,8 +598,6 @@ paths:
         404:
           $ref: '#/responses/404-Not-Found'      
 
-
-
 parameters:
   offset:
     name: offset
@@ -643,6 +666,22 @@ definitions:
     properties:
       message:
         type: string
+  
+  User:
+    properties:
+      token:
+        type: string
+        description: Session Token
+      userId:
+        type: string
+        description: ID працівника
+      login:
+        type: string
+      name:
+        allOf: 
+          - $ref: '#/definitions/Name'
+          - type: object
+            description: "Ім'я працівника"
 
   Address:
     properties:
@@ -817,7 +856,16 @@ definitions:
       employeeName:
         $ref: '#/definitions/Name'
   
-  
+securityDefinitions:
+  BasicAuth:
+    type: basic
+  BearerAuth:
+    type: apiKey
+    in: header
+    name: Authorization
+    description: 'Schema: "Bearer \<token\>"'
+    
+    
   
   
   
