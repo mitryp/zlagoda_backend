@@ -623,14 +623,29 @@ parameters:
 responses:
   400-Bad-Request:
     description: Bad Request
+    schema:
+      $ref: '#/definitions/Error'
   401-Anauthorized:
     description: Invalid Authorization
+    schema:
+      $ref: '#/definitions/Error'
   403-Forbidden:
     description: User is not authorized to perform the action
+    schema:
+      $ref: '#/definitions/Error'
   404-Not-Found:
     description: Not Found
+    schema:
+      $ref: '#/definitions/Error'
 
 definitions:
+  Error:
+    properties:
+      code: 
+        type: integer
+      message:
+        type: string
+
   Address:
     properties:
       city:
