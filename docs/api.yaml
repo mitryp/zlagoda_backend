@@ -23,7 +23,7 @@ paths:
         401:
           description: Некоректні облікові дані
 
-  /login/token:
+  /login/validate:
     post:
       summary: Валідувати Bearer token, отриманий з клієнту
       tags: [Service]
