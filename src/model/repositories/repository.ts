@@ -67,8 +67,8 @@ export abstract class Repository<DTO, PK> {
      * It is recommended to use this method when you know that only one row will be returned.
      */
     public async selectFirst(filters: FilterParam[]): Promise<DTO> {
-        const ms = await this.select({ filters: filters, order: null }, { limit: 1, offset: 0 });
-        return ms[0];
+        const arr = await this.select({ filters: filters, order: null }, { limit: 1, offset: 0 });
+        return arr[0];
     }
 
     public insert(dto: DTO): Promise<void> {
@@ -84,5 +84,20 @@ export abstract class Repository<DTO, PK> {
 
     public delete(primaryKey: PK): Promise<void> {
         return DbHelpers.run(this.db, this.queryBuilder.buildDelete(), "Deleted row", [primaryKey]);
+    }
+
+    /**
+     * Helper method for internal use: all specialized selects are expected to be wrapped by methods that know the return type.
+     */
+    protected async specializedSelect(key: string, params: unknown[]): Promise<Object[]> {
+        return DbHelpers.select(this.db, this.queryBuilder.buildCustomSelect(key), "Selected specialized data from DB, the key of select query is " + key, params);
+    }
+
+    /**
+     * Similarly to selectFirst, this is for convenience when exactly one result is expected.
+     */
+    protected async specializedSelectFirst(key: string, params: unknown[]): Promise<Object> {
+        const arr: Object[] = await this.specializedSelect(key, params);
+        return arr[0];
     }
 }

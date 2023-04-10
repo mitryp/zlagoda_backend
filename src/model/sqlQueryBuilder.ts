@@ -1,3 +1,4 @@
+import assert = require("assert");
 import { QueryStrategy, SelectStrategy, FilteringStrategy, SortingStrategy } from "./queryStrategy";
 
 export type SelectBuilderParams = {
@@ -9,14 +10,13 @@ export type SelectBuilderParams = {
     order: OrderParam;
 };
 
-/**
- * One string key for the order.
- * May be null if sorting is not required.
- */
 export type OrderParam = {
+    /**
+     * String key in SortingStrategy.
+     */
     key: string;
     asc: boolean;
-}
+};
 
 export class SqlQueryBuilder {
     public constructor(protected queryStrategy: QueryStrategy) {}
@@ -59,5 +59,10 @@ export class SqlQueryBuilder {
 
     public buildDelete(): string {
         return this.queryStrategy.deleteStrategy + ";";
+    }
+
+    public buildCustomSelect(key: string): string {
+        assert(key.endsWith("SelectStrategy")); // to prevent accidents during development
+        return this.queryStrategy[key] + ";";
     }
 }
