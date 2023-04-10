@@ -15,7 +15,7 @@ export async function testCategories(): Promise<void> {
     console.log("after insertion:", await repo.select());
 
     // search for a category name
-    const category = await repo.selectFirst({ filters: ["nameFilter"], filtersParams: ["Dairy"] });
+    const category = await repo.selectFirst([{key: "nameFilter", params: ["Dairy"] }]);
     console.log("found category", category);
 
     await repo.update(category.categoryNumber, { categoryNumber: category.categoryNumber, categoryName: "Not Dairy Anymore" });

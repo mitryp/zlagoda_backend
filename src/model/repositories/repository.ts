@@ -1,16 +1,25 @@
 import { Database } from "sqlite3";
-import { SqlQueryBuilder } from "../sqlQueryBuilder";
+import { OrderParam, SqlQueryBuilder } from "../sqlQueryBuilder";
 import { SelectBuilderParams } from "../sqlQueryBuilder";
 import { DbHelpers } from "../dbHelpers";
 import { QueryStrategy } from "../queryStrategy";
 
-export type SelectParams = SelectBuilderParams & {
-    filtersParams: unknown[];
+/**
+ * For better reliability in SelectParams, this type is used to tightly couple filter keys with corresponding filter parameters.
+ */
+export type FilterParam = {
+    key: string;
+    params: unknown[];
 };
 
 export type Pagination = {
     limit: number;
     offset: number;
+};
+
+export type SelectParams = {
+    filters: FilterParam[];
+    order: OrderParam;
 };
 
 /**
@@ -37,11 +46,18 @@ export abstract class Repository<DTO, PK> {
      */
     protected abstract castToParamsArray(dto: DTO): unknown[];
 
-    public async select(params: SelectParams = { filters: [], order: null, filtersParams: [] }, pagination: Pagination = { limit: 20, offset: 0 }): Promise<DTO[]> {
-        let queryParams = params.filtersParams;
+    public async select(params: SelectParams = { filters: [], order: null }, pagination: Pagination = { limit: 20, offset: 0 }): Promise<DTO[]> {
+        // build key and param arrays (specifically the filter part) according to the configuration passed in parameters
+        // this ensures that overall order of parameters matches the order of filters, and therefore values are substituted in correct places in the query
+        let filterKeys: string[] = [];
+        let queryParams: unknown[] = [];
+        params.filters.forEach((filter: FilterParam) => {
+            filterKeys.push(filter.key); // add the filter key
+            queryParams = [...queryParams, ...filter.params]; // add specific filter's parameters to full query parameters (e.g. parameter "Dairy" for category's "nameFilter")
+        });
         queryParams.push(pagination.limit);
         queryParams.push(pagination.offset);
-        const rows = await DbHelpers.select(this.db, this.queryBuilder.buildSelect(params), "Selected from DB", queryParams);
+        const rows = await DbHelpers.select(this.db, this.queryBuilder.buildSelect({ filters: filterKeys, order: params.order }), "Selected from DB", queryParams);
         return rows.map(this.castToOutput);
     }
 
@@ -50,8 +66,8 @@ export abstract class Repository<DTO, PK> {
      * As such, does not take in sorting or pagination settings.
      * It is recommended to use this method when you know that only one row will be returned.
      */
-    public async selectFirst(params: { filters: string[]; filtersParams: unknown[] }): Promise<DTO> {
-        const ms = await this.select({ filters: params.filters, order: null, filtersParams: params.filtersParams }, { limit: 1, offset: 0 });
+    public async selectFirst(filters: FilterParam[]): Promise<DTO> {
+        const ms = await this.select({ filters: filters, order: null }, { limit: 1, offset: 0 });
         return ms[0];
     }
 

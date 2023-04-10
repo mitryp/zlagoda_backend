@@ -6,15 +6,17 @@ export type SelectBuilderParams = {
      * SelectStrategy that will be used by the builder must have filters with these keys.
      */
     filters: string[];
-    /**
-     * One string key for the order.
-     * May be null if sorting is not required.
-     */
-    order: {
-        key: string;
-        asc: boolean;
-    };
+    order: OrderParam;
 };
+
+/**
+ * One string key for the order.
+ * May be null if sorting is not required.
+ */
+export type OrderParam = {
+    key: string;
+    asc: boolean;
+}
 
 export class SqlQueryBuilder {
     public constructor(protected queryStrategy: QueryStrategy) {}
