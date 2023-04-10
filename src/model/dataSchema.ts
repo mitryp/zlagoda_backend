@@ -1,30 +1,30 @@
-const sqlite3 = require("sqlite3").verbose();
-const fs = require("fs");
-const dotenv = require("dotenv");
-dotenv.config();
-const Repository = require("./repositories/repository");
+import {OPEN_CREATE, OPEN_READWRITE} from "sqlite3";
+import * as fs from 'fs';
+import * as dotenv from 'dotenv';
 
-/**
- * Generates the database.
- */
-async function generate() {
+import {DbHelpers, sql} from "./dbHelpers";
+
+dotenv.config();
+
+
+async function generateDb(): Promise<void> {
     console.log("Generating database schema");
-    const db = await Repository.openDB(
+    const db = await DbHelpers.openDB(
         "Open database connection",
-        sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE
+        OPEN_READWRITE | OPEN_CREATE
     );
 
     // Category
-    let query = `
+    let query = sql`
         CREATE TABLE IF NOT EXISTS Category (
             category_number INTEGER PRIMARY KEY,
             category_name TEXT NOT NULL CHECK (LENGTH(category_name) <= 50)
         )
     `;
-    await Repository.run(db, query, "Create table Category");
+    await DbHelpers.run(db, query, "Create table Category");
 
     // Product
-    query = `
+    query = sql`
         CREATE TABLE IF NOT EXISTS Product (
             UPC TEXT PRIMARY KEY CHECK (LENGTH(UPC) <= 12),
             category_number INTEGER NOT NULL,
@@ -36,10 +36,10 @@ async function generate() {
                 ON DELETE RESTRICT
         ) WITHOUT ROWID
     `;
-    await Repository.run(db, query, "Create table Product");
+    await DbHelpers.run(db, query, "Create table Product");
 
     // Store_Product
-    query = `
+    query = sql`
         CREATE TABLE IF NOT EXISTS Store_Product (
             id_product INTEGER PRIMARY KEY,
             id_product_base INTEGER,
@@ -58,10 +58,10 @@ async function generate() {
                 ON DELETE RESTRICT
         )
     `;
-    await Repository.run(db, query, "Create table Store_Product");
+    await DbHelpers.run(db, query, "Create table Store_Product");
 
     // Employee
-    query = `
+    query = sql`
         CREATE TABLE IF NOT EXISTS Employee (
             id_employee TEXT PRIMARY KEY CHECK (LENGTH(id_employee) <= 10),
             empl_surname TEXT NOT NULL CHECK (LENGTH(empl_surname) <= 50),
@@ -86,10 +86,10 @@ async function generate() {
             )
         ) WITHOUT ROWID
     `;
-    await Repository.run(db, query, "Create table Employee");
+    await DbHelpers.run(db, query, "Create table Employee");
 
     // Customer_Card
-    query = `
+    query = sql`
         CREATE TABLE IF NOT EXISTS Customer_Card (
             card_number TEXT PRIMARY KEY CHECK (LENGTH(card_number) <= 10),
             cust_surname TEXT NOT NULL CHECK (LENGTH(cust_surname) <= 50),
@@ -106,10 +106,10 @@ async function generate() {
             )
         ) WITHOUT ROWID
     `;
-    await Repository.run(db, query, "Create table Customer_Card");
+    await DbHelpers.run(db, query, "Create table Customer_Card");
 
     // Receipt (renamed from Check because Check causes a syntax error in SQLite)
-    query = `
+    query = sql`
         CREATE TABLE IF NOT EXISTS Receipt (
             receipt_number TEXT PRIMARY KEY CHECK (LENGTH(receipt_number) <= 10),
             id_employee TEXT NOT NULL,
@@ -125,10 +125,10 @@ async function generate() {
                 ON DELETE RESTRICT
         ) WITHOUT ROWID
     `;
-    await Repository.run(db, query, "Create table Receipt");
+    await DbHelpers.run(db, query, "Create table Receipt");
 
     // Sale
-    query = `
+    query = sql`
         CREATE TABLE IF NOT EXISTS Sale (
             id_product INTEGER,
             receipt_number TEXT,
@@ -145,24 +145,18 @@ async function generate() {
                 ON DELETE CASCADE
         ) WITHOUT ROWID
     `;
-    await Repository.run(db, query, "Create table Sale");
+    await DbHelpers.run(db, query, "Create table Sale");
 
-    await Repository.closeDB(db, "Close database connection");
+    await DbHelpers.closeDB(db, "Close database connection");
     console.log("Finish generating database schema");
 }
 
-/**
- * Initializes the database (i.e. generates, but only when the file does not exist).
- */
-async function initialize() {
+export async function initDbIfNotExists(): Promise<void> {
     try {
         const exists = fs.existsSync(process.env.DB_PATH);
-        if (!exists) await generate();
-    }
-    catch (err) {
+        if (!exists) return generateDb();
+    } catch (err) {
         console.error(err);
         process.exit(1);
     }
 }
-
-module.exports = initialize;

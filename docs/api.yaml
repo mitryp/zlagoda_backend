@@ -8,7 +8,33 @@ schemes:
   - http
 produces:
   - application/json
+security: [BearerAuth: []]
 paths:
+  /login:
+    post:
+      summary: Виконати вхід за допомогою Basic Authentication
+      tags: [Service]
+      security: [BasicAuth: []]
+      responses:
+        200: 
+          description: Вхід виконано успішно
+          schema:
+            $ref: '#/definitions/User'
+        401:
+          description: Некоректні облікові дані
+
+  /login/validate:
+    post:
+      summary: Валідувати Bearer token, отриманий з клієнту
+      tags: [Service]
+      security: [BearerAuth: []]
+      responses:
+        200: 
+          description: Токен валідний
+        401:
+          description: Токен невалідний
+
+
   /employees:
     get:
       summary: Отримати список працівників
@@ -17,7 +43,7 @@ paths:
         - $ref: '#/parameters/limit'
         - $ref: '#/parameters/offset'
         - $ref: '#/parameters/sort_order'
-
+        - $ref: '#/parameters/sort_field'
       responses:
         200:
           description: Список працівників магазину (менеджери та касири)
@@ -27,6 +53,8 @@ paths:
               $ref: '#/definitions/Employee'
         401:
           $ref: '#/responses/401-Anauthorized'
+        403:
+          $ref: '#/responses/403-Forbidden'
     post:
       summary: Створити нового працівника
       tags: [Employees]
@@ -46,6 +74,8 @@ paths:
           $ref: '#/responses/400-Bad-Request'
         401:
           $ref: '#/responses/401-Anauthorized'
+        403:
+          $ref: '#/responses/403-Forbidden'
 
   /employees/{id}:
     get:
@@ -62,9 +92,10 @@ paths:
           $ref: '#/responses/400-Bad-Request'
         401:
           $ref: '#/responses/401-Anauthorized'
+        403:
+          $ref: '#/responses/403-Forbidden'
         404: 
           $ref: '#/responses/404-Not-Found'
-          
     put:
       summary: Оновити інформацію про існуючого працівника
       tags: [Employees]
@@ -81,9 +112,10 @@ paths:
           $ref: '#/responses/400-Bad-Request'
         401:
           $ref: '#/responses/401-Anauthorized'
+        403:
+          $ref: '#/responses/403-Forbidden'
         404:
           $ref: '#/responses/404-Not-Found'
-    
     delete:
       summary: Видалити інформацію про існуючого працівника
       tags: [Employees]
@@ -96,73 +128,80 @@ paths:
           $ref: '#/responses/400-Bad-Request'
         401:
           $ref: '#/responses/401-Anauthorized'
+        403:
+          $ref: '#/responses/403-Forbidden'
         404:
           $ref: '#/responses/404-Not-Found'
-    
-        
-  /goods_types:
+
+
+  /products:
     get:
       summary: Отримати список типів товарів
-      tags: [Goods types]
+      tags: [Products]
       parameters:
         - $ref: '#/parameters/offset'
         - $ref: '#/parameters/limit'
         - $ref: '#/parameters/sort_order'
-        
+        - $ref: '#/parameters/sort_field'
       responses:
         200:
           description: Список типів товарів
           schema:
             type: array
             items: 
-              $ref: '#/definitions/GoodsType'
+              $ref: '#/definitions/ProductWithCategory'
         401:
           $ref: '#/responses/401-Anauthorized'
+        403:
+          $ref: '#/responses/403-Forbidden'
     post:
       summary: Створити новий тип товарів
-      tags: [Goods types]
+      tags: [Products]
       parameters:
         - name: data
           in: body
           schema: 
-            $ref: '#/definitions/GoodsType'
+            $ref: '#/definitions/Product'
       responses:
         201:
           description: Created
           schema:
-            $ref: '#/definitions/GoodsType'
+            $ref: '#/definitions/ProductWithCategory'
         400:
           $ref: '#/responses/400-Bad-Request'
         401:
           $ref: '#/responses/401-Anauthorized'
-          
-  /goods_types/{id}:
+        403:
+          $ref: '#/responses/403-Forbidden'
+
+  /products/{id}:
     get:
       summary: Отримати інформацію про тип товару за його id
-      tags: [Goods types]
+      tags: [Products]
       parameters:
         - $ref: '#/parameters/id'
       responses:
         200:
           description: ОК
           schema:
-            $ref: '#/definitions/GoodsTypeWithCategory'
+            $ref: '#/definitions/ProductWithCategory'
         400:
           $ref: '#/responses/400-Bad-Request'
         401:
           $ref: '#/responses/401-Anauthorized'
+        403:
+          $ref: '#/responses/403-Forbidden'
         404: 
           $ref: '#/responses/404-Not-Found'
-    
     put:
       summary: Оновити інформацію про існуючий тип товару
-      tags: [Goods types]
+      tags: [Products]
       parameters:
         - $ref: '#/parameters/id'
         - name: data
           in: body
           schema:
-            $ref: '#/definitions/GoodsType'
+            $ref: '#/definitions/Product'
       responses:
         200:
           description: Updated
@@ -170,12 +209,13 @@ paths:
           $ref: '#/responses/400-Bad-Request'
         401:
           $ref: '#/responses/401-Anauthorized'
+        403:
+          $ref: '#/responses/403-Forbidden'
         404:
           $ref: '#/responses/404-Not-Found'
-    
     delete:
       summary: Видалити інформацію про існуючий тип товару
-      tags: [Goods types]
+      tags: [Products]
       parameters:
         - $ref: '#/parameters/id'
       responses:
@@ -185,77 +225,80 @@ paths:
           $ref: '#/responses/400-Bad-Request'
         401:
           $ref: '#/responses/401-Anauthorized'
+        403:
+          $ref: '#/responses/403-Forbidden'
         404:
           $ref: '#/responses/404-Not-Found'
-          
-          
-  /goods:
+
+
+  /store_products:
     get:
       summary: Отримати список товарів у магазині
-      tags: [Goods]
+      tags: [Store products]
       parameters:
         - $ref: '#/parameters/sort_order'
         - $ref: '#/parameters/offset'
         - $ref: '#/parameters/limit'
-        - name: type
-          in: query
-          type: string
-          enum: [all, prom, no_prom]
-          default: all
+        - $ref: '#/parameters/sort_field'
       responses:
         200:
           description: Список товарів
           schema:
             type: array
             items:
-              $ref: '#/definitions/Goods'
+              $ref: '#/definitions/JoinedStoreProduct'
         401:
           $ref: '#/responses/401-Anauthorized'
+        403:
+          $ref: '#/responses/403-Forbidden'
     post:
       summary: Створити новий товар
-      tags: [Goods]
+      tags: [Store products]
       parameters:
         - name: data
           in: body
           schema: 
-            $ref: '#/definitions/Goods'
+            $ref: '#/definitions/PostStoreProduct'
       responses:
         201:
           description: Created
           schema:
-            $ref: '#/definitions/Goods'
+            $ref: '#/definitions/JoinedStoreProduct'
         400:
           $ref: '#/responses/400-Bad-Request'
         401:
           $ref: '#/responses/401-Anauthorized'
-          
-  /goods/{id}:
+        403:
+          $ref: '#/responses/403-Forbidden'
+
+  /store_products/{id}:
     get:
       summary: Отримати інформацію про товар за його id
-      tags: [Goods]
+      tags: [Store products]
       parameters:
         - $ref: '#/parameters/id'
       responses:
         200:
           description: ОК
           schema:
-            $ref: '#/definitions/JoinedGoods'
+            $ref: '#/definitions/JoinedStoreProduct'
         400:
           $ref: '#/responses/400-Bad-Request'
         401:
           $ref: '#/responses/401-Anauthorized'
+        403:
+          $ref: '#/responses/403-Forbidden'
         404: 
           $ref: '#/responses/404-Not-Found'
-
     put:
       summary: Оновити інформацію про існуючий товар
-      tags: [Goods]
+      tags: [Store products]
       parameters:
         - $ref: '#/parameters/id'
         - name: data
           in: body
           schema:
-            $ref: '#/definitions/Goods'
+            $ref: '#/definitions/StoreProduct'
       responses:
         200:
           description: Updated
@@ -263,12 +306,13 @@ paths:
           $ref: '#/responses/400-Bad-Request'
         401:
           $ref: '#/responses/401-Anauthorized'
+        403:
+          $ref: '#/responses/403-Forbidden'
         404:
           $ref: '#/responses/404-Not-Found'
-    
     delete:
       summary: Видалити інформацію про існуючий товар
-      tags: [Goods]
+      tags: [Store products]
       parameters:
         - $ref: '#/parameters/id'
       responses:
@@ -278,6 +322,8 @@ paths:
           $ref: '#/responses/400-Bad-Request'
         401:
           $ref: '#/responses/401-Anauthorized'
+        403:
+          $ref: '#/responses/403-Forbidden'
         404:
           $ref: '#/responses/404-Not-Found'
   
@@ -290,15 +336,18 @@ paths:
         - $ref: '#/parameters/sort_order'
         - $ref: '#/parameters/offset'
         - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/sort_field'
       responses:
         200:
           description: Список категорій
           schema:
             type: array
             items:
-              $ref: '#/definitions/GoodsCategory'
+              $ref: '#/definitions/Category'
         401:
           $ref: '#/responses/401-Anauthorized'
+        403:
+          $ref: '#/responses/403-Forbidden'
     post:
       summary: Створити нову категорію
       tags: [Categories]
@@ -306,16 +355,18 @@ paths:
         - name: data
           in: body
           schema: 
-            $ref: '#/definitions/Goods'
+            $ref: '#/definitions/PostCategory'
       responses:
         201:
           description: Created
           schema:
-            $ref: '#/definitions/Goods'
+            $ref: '#/definitions/Category'
         400:
           $ref: '#/responses/400-Bad-Request'
         401:
           $ref: '#/responses/401-Anauthorized'
+        403:
+          $ref: '#/responses/403-Forbidden'
 
   /categories/{id}:
     get:
@@ -327,14 +378,15 @@ paths:
         200:
           description: ОК
           schema:
-            $ref: '#/definitions/GoodsCategory'
+            $ref: '#/definitions/Category'
         400:
           $ref: '#/responses/400-Bad-Request'
         401:
           $ref: '#/responses/401-Anauthorized'
+        403:
+          $ref: '#/responses/403-Forbidden'
         404: 
           $ref: '#/responses/404-Not-Found'
-
     put:
       summary: Оновити інформацію про існуючу категорію товарів
       tags: [Categories]
@@ -343,7 +395,7 @@ paths:
         - name: data
           in: body
           schema:
-            $ref: '#/definitions/GoodsCategory'
+            $ref: '#/definitions/Category'
       responses:
         200:
           description: Updated
@@ -351,9 +403,10 @@ paths:
           $ref: '#/responses/400-Bad-Request'
         401:
           $ref: '#/responses/401-Anauthorized'
+        403:
+          $ref: '#/responses/403-Forbidden'
         404:
           $ref: '#/responses/404-Not-Found'
-    
     delete:
       summary: Видалити інформацію про існуючу категорію товарів
       tags: [Categories]
@@ -366,10 +419,12 @@ paths:
           $ref: '#/responses/400-Bad-Request'
         401:
           $ref: '#/responses/401-Anauthorized'
+        403:
+          $ref: '#/responses/403-Forbidden'
         404:
           $ref: '#/responses/404-Not-Found'
-      
-          
+
+
   /clients:
     get:
       summary: Отримати список постійних клієнтів
@@ -378,6 +433,7 @@ paths:
         - $ref: '#/parameters/sort_order'
         - $ref: '#/parameters/offset'
         - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/sort_field'
       responses:
         200:
           description: Список клієнтів
@@ -387,6 +443,8 @@ paths:
               $ref: '#/definitions/Client'
         401:
           $ref: '#/responses/401-Anauthorized'
+        403:
+          $ref: '#/responses/403-Forbidden'
     post:
       summary: Створити нового клієнта
       tags: [Clients]
@@ -404,7 +462,9 @@ paths:
           $ref: '#/responses/400-Bad-Request'
         401:
           $ref: '#/responses/401-Anauthorized'
-          
+        403:
+          $ref: '#/responses/403-Forbidden'
+
   /clients/{id}:
     get:
       summary: Отримати інформацію про постійного клієнта за його id
@@ -420,9 +480,10 @@ paths:
           $ref: '#/responses/400-Bad-Request'
         401:
           $ref: '#/responses/401-Anauthorized'
+        403:
+          $ref: '#/responses/403-Forbidden'
         404: 
           $ref: '#/responses/404-Not-Found'
-
     put:
       summary: Оновити інформацію про існуючого постійного клієнта
       tags: [Clients]
@@ -439,9 +500,10 @@ paths:
           $ref: '#/responses/400-Bad-Request'
         401:
           $ref: '#/responses/401-Anauthorized'
+        403:
+          $ref: '#/responses/403-Forbidden'
         404:
           $ref: '#/responses/404-Not-Found'
-    
     delete:
       summary: Видалити інформацію про існуючого постійного клієнта
       tags: [Clients]
@@ -454,10 +516,12 @@ paths:
           $ref: '#/responses/400-Bad-Request'
         401:
           $ref: '#/responses/401-Anauthorized'
+        403:
+          $ref: '#/responses/403-Forbidden'
         404:
           $ref: '#/responses/404-Not-Found'
-    
-    
+
+
   /receipts:
     get:
       summary: Отримати список чеків
@@ -466,15 +530,18 @@ paths:
         - $ref: '#/parameters/sort_order'
         - $ref: '#/parameters/offset'
         - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/sort_field'
       responses:
         200:
           description: Список чеків
           schema:
             type: array
             items:
-              $ref: '#/definitions/Receipt'
+              $ref: '#/definitions/TableReceipt'
         401:
           $ref: '#/responses/401-Anauthorized'
+        403:
+          $ref: '#/responses/403-Forbidden'
     post:
       summary: Створити новий чек
       tags: [Receipts]
@@ -482,17 +549,19 @@ paths:
         - name: data
           in: body
           schema: 
-            $ref: '#/definitions/Receipt'
+            $ref: '#/definitions/PostReceipt'
       responses:
         201:
           description: Created
           schema:
-            $ref: '#/definitions/Client'
+            $ref: '#/definitions/Receipt'
         400:
           $ref: '#/responses/400-Bad-Request'
         401:
           $ref: '#/responses/401-Anauthorized'
-    
+        403:
+          $ref: '#/responses/403-Forbidden'
+
   /receipts/{id}:
     get:
       summary: Отримати інформацію про чек за його id
@@ -503,33 +572,15 @@ paths:
         200:
           description: ОК
           schema:
-            $ref: '#/definitions/JoinedReceipt'
+            $ref: '#/definitions/Receipt'
         400:
           $ref: '#/responses/400-Bad-Request'
         401:
           $ref: '#/responses/401-Anauthorized'
+        403:
+          $ref: '#/responses/403-Forbidden'
         404: 
           $ref: '#/responses/404-Not-Found'
-
-    put:
-      summary: Оновити інформацію про існуючий чек
-      tags: [Receipts]
-      parameters:
-        - $ref: '#/parameters/id'
-        - name: data
-          in: body
-          schema:
-            $ref: '#/definitions/Receipt'
-      responses:
-        200:
-          description: Updated
-        400:
-          $ref: '#/responses/400-Bad-Request'
-        401:
-          $ref: '#/responses/401-Anauthorized'
-        404:
-          $ref: '#/responses/404-Not-Found'
-    
     delete:
       summary: Видалити інформацію про існуючий чек
       tags: [Receipts]
@@ -542,11 +593,11 @@ paths:
           $ref: '#/responses/400-Bad-Request'
         401:
           $ref: '#/responses/401-Anauthorized'
+        403:
+          $ref: '#/responses/403-Forbidden'
         404:
           $ref: '#/responses/404-Not-Found'      
-          
-          
-          
+
 parameters:
   offset:
     name: offset
@@ -566,12 +617,18 @@ parameters:
     default: 20
     
   sort_order:
-    name: sort_order
+    name: order
     in: query
     required: false
     type: string
     default: "asc"
     enum: [asc, desc]
+    
+  sort_field:
+    name: sortBy
+    in: query
+    required: false
+    type: string
   
   id:
     name: id
@@ -589,12 +646,43 @@ parameters:
 responses:
   400-Bad-Request:
     description: Bad Request
+    schema:
+      $ref: '#/definitions/Error'
   401-Anauthorized:
     description: Invalid Authorization
+    schema:
+      $ref: '#/definitions/Error'
+  403-Forbidden:
+    description: User is not authorized to perform the action
+    schema:
+      $ref: '#/definitions/Error'
   404-Not-Found:
     description: Not Found
+    schema:
+      $ref: '#/definitions/Error'
 
 definitions:
+  Error:
+    properties:
+      message:
+        type: string
+  
+  User:
+    properties:
+      token:
+        type: string
+        description: Session Token
+      userId:
+        type: string
+        description: ID працівника
+      login:
+        type: string
+      name:
+        allOf: 
+          - $ref: '#/definitions/Name'
+          - type: object
+            description: "Ім'я працівника"
+
   Address:
     properties:
       city:
@@ -616,7 +704,7 @@ definitions:
   Employee:
     properties:
       employeeId:
-        type: integer
+        type: string
       name:
         $ref: '#/definitions/Name'
       position:
@@ -634,101 +722,150 @@ definitions:
         type: string
       address:
         $ref: '#/definitions/Address'
-  
-  GoodsType:
-    properties:
-      typeId:
-        type: integer
-      name:
+      login:
         type: string
-      manufacturer:
-        type: string
-      specs:
-        type: string
-      categoryId:
-        type: integer
-        
-  GoodsCategory:
-    properties:
-      categoryId:
-        type: integer
-      categoryName:
-        type: string
-  
-  GoodsTypeWithCategory:
-    allOf: 
-      - $ref: '#/definitions/GoodsType'
-      - $ref: '#/definitions/GoodsCategory'
-  
-  Goods:
+
+  SearchProduct:
     properties:
       upc:
-        type: integer
-      typeId:
-        type: integer
+        type: string
+      productName:
+        type: string
+  
+  Product:
+    allOf:
+      - $ref: '#/definitions/SearchProduct'
+      - type: object
+        properties:
+          manufacturer:
+            type: string
+          specs:
+            type: string
+          categoryId:
+            type: integer
+
+  PostCategory:
+    properties:
+      categoryName:
+        type: string
+
+  Category:
+    allOf: 
+      - type: object
+        properties:
+          categoryId:
+            type: integer
+      - $ref: '#/definitions/PostCategory'
+      
+  
+  ProductWithCategory:
+    allOf: 
+      - $ref: '#/definitions/Product'
+      - $ref: '#/definitions/Category'
+  
+  PostStoreProduct:
+    properties:
+      upc:
+        type: string
       price:
         type: number
       quantity:
         type: integer
         minimum: 0
       isProm:
+        description: 'Cannot be forced to be created, hmmmm'
         type: boolean
-        
-  JoinedGoods:
+  
+  StoreProduct:
     allOf: 
-      - $ref: '#/definitions/GoodsTypeWithCategory'
       - type: object
         properties:
-          goods:
-            type: array
-            items:
-              $ref: '#/definitions/Goods'
-  
+          productId:
+            type: integer
+      - $ref: '#/definitions/PostStoreProduct'
+
+  JoinedStoreProduct:
+    allOf: 
+      - $ref: '#/definitions/ProductWithCategory'
+      - $ref: '#/definitions/StoreProduct'
+
   Client:
     properties:
       clientId:
-        type: integer
-      name:
-        $ref: '#/definitions/Name'
+        type: string
       phone:
         type: string
-      address:
-        $ref: '#/definitions/Address'
       discount:
         type: number
-          
+      name:
+        $ref: '#/definitions/Name'
+      address:
+        $ref: '#/definitions/Address'
+
+  PostSale:
+    properties:
+      upc:
+        type: string
+      price:
+        type: integer
+      quantity:
+        type: integer
+        
+  JoinedSale:
+    allOf: 
+      - type: object
+        properties:
+          productName:
+            type: string
+      - $ref: '#/definitions/PostSale'
+
+  PostReceipt:
+    properties:
+      date:
+        type: integer
+      clientId:
+        type: string
+      employeeId:
+        type: string
+      sales:
+        type: array
+        items:
+          $ref: '#/definitions/PostSale'
+
   Receipt:
+    allOf: 
+      - $ref: '#/definitions/PostReceipt'
+      - $ref: '#/definitions/TableReceipt'
+      - type: object
+        properties:
+          tax:
+            type: number
+          sales:
+            type: array
+            items:
+              $ref: '#/definitions/JoinedSale'
+  
+  TableReceipt:
     properties:
       receiptId:
         type: integer
-      date:
-        type: integer
-      amount:
+      cost:
         type: number
-      tax:
-        type: number
-      clientId:
-        type: integer
-      employeeId:
-        type: integer
-      goodsIds:
-        type: array
-        items:
-          type: integer
+      clientName:
+        $ref: '#/definitions/Name'
+      employeeName:
+        $ref: '#/definitions/Name'
   
-  JoinedReceipt:
-    allOf: 
-      - $ref: '#/definitions/Receipt'
-      - $ref: '#/definitions/Client'
-      - $ref: '#/definitions/Employee'
-      - type: object
-        properties:
-          goods:
-            type: array
-            items:
-              $ref: '#/definitions/Goods'
-  
-  
+securityDefinitions:
+  BasicAuth:
+    type: basic
+  BearerAuth:
+    type: apiKey
+    in: header
+    name: Authorization
+    description: 'Schema: "Bearer \<token\>"'
+    
+    
   
   
   
