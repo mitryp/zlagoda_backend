@@ -23,10 +23,13 @@ export type SelectParams = {
 };
 
 /**
- * DTO is the interface of the data transfer object.
+ * InputDTO is the interface of the data transfer object with the data that comes in (e.g. for insertion).
+ * Similarly, OutputDTO is the interface of the object that comes out of the regular select.
+ * In many scenarios this distinction does not matter, so the default value for OutputDTO is InputDTO.
+ * However, in case of Receipt and Employee repositories, for example, there are differences between input and output structures.
  * PK is the type of the primary key (a singular value).
  */
-export abstract class Repository<DTO, PK> {
+export abstract class Repository<PK, InputDTO, OutputDTO = InputDTO> {
     protected queryBuilder: SqlQueryBuilder;
 
     protected constructor(protected db: Database, queryStrategy: QueryStrategy) {
@@ -35,18 +38,18 @@ export abstract class Repository<DTO, PK> {
 
     /**
      * Takes a row object values in the exact order as they are returned by the database query
-     * and returns an object with interface DTO.
+     * and returns an object with interface OutputDTO.
      * Note that the actual object may have more properties.
      * For example, when the base SELECT returns a joined table, e.g. for Store_Product which needs its Product's name.
      */
-    protected abstract castToOutput(row: Object): DTO;
+    protected abstract castToOutput(row: Object): OutputDTO;
 
     /**
-     * Builds a parameter array for INSERT / UPDATE queries from a DTO.
+     * Builds a parameter array for INSERT / UPDATE queries from a InputDTO.
      */
-    protected abstract castToParamsArray(dto: DTO): unknown[];
+    protected abstract castToParamsArray(dto: InputDTO): unknown[];
 
-    public async select(params: SelectParams = { filters: [], order: null }, pagination: Pagination = { limit: 20, offset: 0 }): Promise<DTO[]> {
+    public async select(params: SelectParams = { filters: [], order: null }, pagination: Pagination = { limit: 20, offset: 0 }): Promise<OutputDTO[]> {
         // build key and param arrays (specifically the filter part) according to the configuration passed in parameters
         // this ensures that overall order of parameters matches the order of filters, and therefore values are substituted in correct places in the query
         let filterKeys: string[] = [];
@@ -57,7 +60,7 @@ export abstract class Repository<DTO, PK> {
         });
         queryParams.push(pagination.limit);
         queryParams.push(pagination.offset);
-        const rows = await DbHelpers.select(this.db, this.queryBuilder.buildSelect({ filters: filterKeys, order: params.order }), "Selected from DB", queryParams);
+        const rows: Object[] = await DbHelpers.select(this.db, this.queryBuilder.buildSelect({ filters: filterKeys, order: params.order }), "Selected from DB", queryParams);
         return rows.map(this.castToOutput);
     }
 
@@ -66,20 +69,20 @@ export abstract class Repository<DTO, PK> {
      * As such, does not take in sorting or pagination settings.
      * It is recommended to use this method when you know that only one row will be returned.
      */
-    public async selectFirst(filters: FilterParam[]): Promise<DTO> {
-        const arr = await this.select({ filters: filters, order: null }, { limit: 1, offset: 0 });
+    public async selectFirst(filters: FilterParam[]): Promise<OutputDTO> {
+        const arr: OutputDTO[] = await this.select({ filters: filters, order: null }, { limit: 1, offset: 0 });
         return arr[0];
     }
 
-    public insert(dto: DTO): Promise<void> {
-        return DbHelpers.run(this.db, this.queryBuilder.buildInsert(), "Inserted row into DB", this.castToParamsArray(dto));
+    public insert(InputDTO: InputDTO): Promise<void> {
+        return DbHelpers.run(this.db, this.queryBuilder.buildInsert(), "Inserted row into DB", this.castToParamsArray(InputDTO));
     }
     /**
      * The row must contain the primary key.
      * Other values will be overwritten with the values from this object.
      */
-    public update(primaryKey: PK, dto: DTO): Promise<void> {
-        return DbHelpers.run(this.db, this.queryBuilder.buildUpdate(), "Updated row", [...this.castToParamsArray(dto), primaryKey]);
+    public update(primaryKey: PK, InputDTO: InputDTO): Promise<void> {
+        return DbHelpers.run(this.db, this.queryBuilder.buildUpdate(), "Updated row", [...this.castToParamsArray(InputDTO), primaryKey]);
     }
 
     public delete(primaryKey: PK): Promise<void> {

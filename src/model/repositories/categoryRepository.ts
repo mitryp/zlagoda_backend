@@ -1,6 +1,6 @@
 import { Database } from "sqlite3";
 import { Repository } from "./repository";
-import { ICategory, CategoryPK } from "../data_types/category";
+import { ICategoryInput, ICategoryOutput, CategoryPK } from "../data_types/category";
 import { QueryStrategy } from "../queryStrategy";
 import { sql } from "../dbHelpers";
 
@@ -29,27 +29,26 @@ const CATEGORY_QUERY_STRATEGY: QueryStrategy = {
     },
     updateStrategy: sql`
         UPDATE Category
-        SET category_number = ?, category_name = ?
+        SET category_name = ?
         WHERE category_number = ?`,
     insertStrategy: sql`
-        INSERT INTO Category (category_number, category_name)
-        VALUES (?, ?)`,
+        INSERT INTO Category (category_name)
+        VALUES (?)`,
     deleteStrategy: sql`
         DELETE FROM Category
         WHERE category_number = ?`,
 };
 
-export class CategoryRepository extends Repository<ICategory, CategoryPK> {
+export class CategoryRepository extends Repository<CategoryPK, ICategoryInput, ICategoryOutput> {
     constructor(db: Database) {
         super(db, CATEGORY_QUERY_STRATEGY);
     }
 
-    protected castToOutput(row: Object): ICategory {
+    protected castToOutput(row: Object): ICategoryOutput {
         return { categoryNumber: row["category_number"], categoryName: row["category_name"] };
     }
 
-    protected castToParamsArray(dto: ICategory): unknown[] {
-        return [dto.categoryNumber, dto.categoryName];
+    protected castToParamsArray(dto: ICategoryInput): [string] {
+        return [dto.categoryName];
     }
-    
 }
