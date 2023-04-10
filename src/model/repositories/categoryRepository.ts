@@ -1,39 +1,55 @@
-import {Database} from "sqlite3";
-import {Repository} from "./repository";
-import {ProductCategory} from "../data_types/productCategory";
-import {QueryStrategy} from "../queryStrategy";
+import { Database } from "sqlite3";
+import { Repository } from "./repository";
+import { ICategory, CategoryPK } from "../data_types/category";
+import { QueryStrategy } from "../queryStrategy";
+import { sql } from "../dbHelpers";
 
-const productCategoryQueryStrategy: QueryStrategy = {
+const CATEGORY_QUERY_STRATEGY: QueryStrategy = {
     selectStrategy: {
-        baseClause:
-            'SELECT category_number, category_name ' +
-            'FROM Category',
+        baseClause: sql`
+            SELECT category_number, category_name
+            FROM Category
+            WHERE TRUE`,
         filteringStrategy: {
-            filteringClause:
-                'WHERE category_name = ?',
+            numberFilter: sql`
+                AND category_number = ?`,
+            nameFilter: sql`
+                AND category_name = ?`,
         },
-        singleRowFilterClause:
-            'WHERE category_id = ?',
-        sortingClause:
-            'ORDER BY category_name ASC'
+        sortingStrategy: {
+            nameOrder: {
+                asc: sql`
+                    ORDER BY category_name ASC`,
+                desc: sql`
+                    ORDER BY category_name DESC`,
+            },
+        },
+        pagination: sql`
+            LIMIT ? OFFSET ?`,
     },
-    updateStrategy:
-        'UPDATE Category SET category_name = ? ' +
-        'WHERE category_number = ?',
-    insertStrategy:
-        'INSERT INTO Category (category_name) ' +
-        'VALUES (?)',
-    deleteStrategy:
-        'DELETE FROM Category ' +
-        'WHERE category_number = ?'
+    updateStrategy: sql`
+        UPDATE Category
+        SET category_number = ?, category_name = ?
+        WHERE category_number = ?`,
+    insertStrategy: sql`
+        INSERT INTO Category (category_number, category_name)
+        VALUES (?, ?)`,
+    deleteStrategy: sql`
+        DELETE FROM Category
+        WHERE category_number = ?`,
 };
 
-export class ProductCategoryRepository extends Repository<ProductCategory> {
+export class CategoryRepository extends Repository<ICategory, CategoryPK> {
     constructor(db: Database) {
-        super(db, productCategoryQueryStrategy);
+        super(db, CATEGORY_QUERY_STRATEGY);
     }
 
-    protected castToModel(row: unknown[]): ProductCategory {
-        return new ProductCategory(Object.values(row) as [number, string]);
+    protected castToOutput(row: Object): ICategory {
+        return { categoryNumber: row["category_number"], categoryName: row["category_name"] };
     }
+
+    protected castToParamsArray(dto: ICategory): unknown[] {
+        return [dto.categoryNumber, dto.categoryName];
+    }
+    
 }

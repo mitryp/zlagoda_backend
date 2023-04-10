@@ -1,61 +1,61 @@
-import {QueryStrategy} from "./queryStrategy";
+import { QueryStrategy, SelectStrategy, FilteringStrategy, SortingStrategy } from "./queryStrategy";
 
 export type SelectBuilderParams = {
-    // isFiltering: boolean,
-    [key: `is${string}Filtering`]: boolean
-    isSorting: boolean,
-}
+    /**
+     * Keys that specify filter clauses to be used.
+     * SelectStrategy that will be used by the builder must have filters with these keys.
+     */
+    filters: string[];
+    /**
+     * One string key for the order.
+     * May be null if sorting is not required.
+     */
+    order: {
+        key: string;
+        asc: boolean;
+    };
+};
 
 export class SqlQueryBuilder {
-    public constructor(protected queryStrategy: QueryStrategy) {
+    public constructor(protected queryStrategy: QueryStrategy) {}
+
+    protected buildSelectFilters(filters: string[]): string {
+        const filteringStrategy: FilteringStrategy = this.queryStrategy.selectStrategy.filteringStrategy;
+        let result: string = "";
+        filters.forEach((filter) => {
+            result += "\n" + filteringStrategy[filter];
+        });
+        return result;
     }
 
-    protected buildWhereClause(params: SelectBuilderParams): string {
-        const filteringStrategy = this.queryStrategy.selectStrategy.filteringStrategy;
+    public buildSelect(
+        params: SelectBuilderParams = {
+            filters: [],
+            order: null,
+        } as SelectBuilderParams,
+        customSQLFilters: string = null
+    ): string {
+        const selectStrategy: SelectStrategy = this.queryStrategy.selectStrategy;
 
-        if (params.isFiltering === true) return '\n' + filteringStrategy.filteringClause;
+        let query: string = selectStrategy.baseClause;
+        query += customSQLFilters ?? this.buildSelectFilters(params.filters);
+        if (params.order !== null) query += "\n" + selectStrategy.sortingStrategy[params.order.key][params.order.asc ? "asc" : "desc"];
+        query += "\n" + selectStrategy.pagination + ";";
 
-        // keys examples and corresponding boolean params in `params`
-        // - filteringClause
-        // - nameFilteringClause
-        // - ageFilteringClause
-        // custom keys will always end with 'FilteringClause'
-        for (const key in filteringStrategy) {
-            const paramKey = `is${key.replace('Clause', '')}`;
-            if (params[paramKey] === true) return '\n' + filteringStrategy[key];
-        }
-
-        return '';
-    }
-
-    public buildSelect(params: SelectBuilderParams = {isFiltering: false, isSorting: false} as SelectBuilderParams, whereClause: string = null): string {
-        const selectStrategy = this.queryStrategy.selectStrategy;
-
-        let query = selectStrategy.baseClause;
-        query += whereClause ?? this.buildWhereClause(params);
-
-        if (params.isSorting) query += `\n${selectStrategy.sortingClause}`;
-        query += ';';
-
-        // log point to display the actual query
-        // console.log('query', query);
+        console.log("Built SELECT query:\n" + query);
 
         return query;
     }
 
-    public buildSelectOne(): string {
-        return this.buildSelect(null, this.queryStrategy.selectStrategy.singleRowFilterClause);
-    }
-
     public buildInsert(): string {
-        return this.queryStrategy.insertStrategy + ';';
+        return this.queryStrategy.insertStrategy + ";";
     }
 
     public buildUpdate(): string {
-        return this.queryStrategy.updateStrategy + ';';
+        return this.queryStrategy.updateStrategy + ";";
     }
 
     public buildDelete(): string {
-        return this.queryStrategy.deleteStrategy + ';';
+        return this.queryStrategy.deleteStrategy + ";";
     }
 }

@@ -1,6 +1,9 @@
 import * as express from 'express';
 import * as cors from 'cors';
+import * as dotenv from 'dotenv';
 import {initDbIfNotExists} from "./model/dataSchema";
+import { testCategories } from './tests';
+dotenv.config();
 
 const app = express();
 
