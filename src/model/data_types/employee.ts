@@ -43,12 +43,12 @@ export type EmployeePK = string;
 
 // users are employees and employees are users
 export interface IUser {
-    userId: string,
-    login: string,
-    role: string,
+    userId: string;
+    login: string;
+    role: string;
     name: {
-        firstName: string,
-        middleName: null | string,
-        lastName: string
-    }
+        firstName: string;
+        middleName: null | string;
+        lastName: string;
+    };
 }

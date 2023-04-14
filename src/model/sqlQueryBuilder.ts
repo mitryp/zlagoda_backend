@@ -1,5 +1,5 @@
-import assert = require("assert");
-import { QueryStrategy, SelectStrategy, FilteringStrategy, SortingStrategy } from "./queryStrategy";
+import * as assert from "assert";
+import { QueryStrategy, SelectStrategy, FilteringStrategy } from "./queryStrategy";
 
 export type SelectBuilderParams = {
     /**

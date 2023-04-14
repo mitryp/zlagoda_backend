@@ -3,4 +3,5 @@ node_modules/
 build/
 zlagoda_frontend/
 data.sqlite
+testData.sqlite
 dist/

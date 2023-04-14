@@ -1,6 +1,5 @@
 import { Database } from "sqlite3";
 import { OrderParam, SqlQueryBuilder } from "../sqlQueryBuilder";
-import { SelectBuilderParams } from "../sqlQueryBuilder";
 import { DbHelpers } from "../dbHelpers";
 import { QueryStrategy } from "../queryStrategy";
 

@@ -113,6 +113,6 @@ export function sql(strings: TemplateStringsArray): string {
     query = query.replace(/^\n/, ""); // remove leading newline, which is used in code purely for readability
     const leadingSpaces = query.match(/^\s*/)[0]; // extract the full string of leading spaces in the first line
     query = query.replace(new RegExp(`^${leadingSpaces}`), ""); // remove the leading spaces in the first line
-    query = query.replaceAll(new RegExp(`\n${leadingSpaces}`, "g"), "\n"); // remove the leading spaces for every line after the first 
+    query = query.replaceAll(new RegExp(`\n${leadingSpaces}`, "g"), "\n"); // remove the leading spaces for every line after the first
     return query;
 }
