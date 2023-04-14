@@ -1,18 +1,17 @@
-import {OPEN_CREATE, OPEN_READWRITE} from "sqlite3";
-import * as fs from 'fs';
-import * as dotenv from 'dotenv';
+import { OPEN_CREATE, OPEN_READWRITE } from "sqlite3";
+import * as fs from "fs";
+import * as dotenv from "dotenv";
 
-import {DbHelpers, sql} from "./dbHelpers";
+import { DbHelpers, sql } from "./dbHelpers";
+import { IEmployeeInput } from "./data_types/employee";
+import { hashPassword } from "../auth/utils";
+import { EmployeeRepository } from "./repositories/employeeRepository";
 
 dotenv.config();
 
-
 async function generateDb(): Promise<void> {
     console.log("Generating database schema");
-    const db = await DbHelpers.openDB(
-        "Open database connection",
-        OPEN_READWRITE | OPEN_CREATE
-    );
+    const db = await DbHelpers.openDB("Open database connection", OPEN_READWRITE | OPEN_CREATE);
 
     // Category
     let query = sql`
@@ -76,13 +75,9 @@ async function generateDb(): Promise<void> {
             street TEXT NOT NULL CHECK (LENGTH(street) <= 50),
             zip_code TEXT NOT NULL CHECK (LENGTH(zip_code) <= 9),
             login TEXT UNIQUE CHECK(LENGTH(login) <= 15),
-            password TEXT CHECK (LENGTH(password) <= 60),
+            password_hash TEXT CHECK (LENGTH(password_hash) <= 60),
             CHECK (
                 date(date_of_start, 'unixepoch') >= date(date_of_birth, 'unixepoch', '+18 years')
-            ),
-            CHECK (
-                (city IS NULL AND street IS NULL AND zip_code IS NULL)
-                OR (city IS NOT NULL AND street IS NOT NULL AND zip_code IS NOT NULL)
             )
         ) WITHOUT ROWID
     `;
@@ -147,13 +142,38 @@ async function generateDb(): Promise<void> {
     `;
     await DbHelpers.run(db, query, "Create table Sale");
 
+    // a placeholder default account for initial setup of the system, after which it is heavily encouraged to either delete this manager or configure proper values
+    // this is similar to the approach taken with default admin credentials on routers
+    let defaultManager: IEmployeeInput = {
+        employeeId: "0000000000",
+        name: {
+            firstName: "admin",
+            middleName: null,
+            lastName: "admin",
+        },
+        position: "manager",
+        salary: 0,
+        workStartDate: 946684800, // start of 2000, so that this "manager" does not violate work start age constraints
+        birthDate: 0, // start of 1970
+        phone: "+000000000000",
+        address: {
+            city: "none",
+            street: "none",
+            index: "000000000",
+        },
+        login: "admin",
+        password: await hashPassword("admin"),
+    };
+    const employeeRepo: EmployeeRepository = new EmployeeRepository(db);
+    await employeeRepo.insert(defaultManager);
+
     await DbHelpers.closeDB(db, "Close database connection");
     console.log("Finish generating database schema");
 }
 
 export async function initDbIfNotExists(): Promise<void> {
     try {
-        const exists = fs.existsSync(process.env.DB_PATH);
+        const exists: boolean = fs.existsSync(process.env.DB_PATH);
         if (!exists) return generateDb();
     } catch (err) {
         console.error(err);

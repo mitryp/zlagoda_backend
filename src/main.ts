@@ -1,8 +1,7 @@
-import * as express from 'express';
-import * as cors from 'cors';
-import * as dotenv from 'dotenv';
-import {initDbIfNotExists} from "./model/dataSchema";
-import { testCategories } from './tests';
+import * as express from "express";
+import * as cors from "cors";
+import * as dotenv from "dotenv";
+import { initDbIfNotExists } from "./model/dataSchema";
 dotenv.config();
 
 const app = express();
@@ -35,9 +34,13 @@ const app = express();
  */
 async function startServer(): Promise<void> {
     // middleware setup
-    app.use(cors());
+    app.use(
+        cors({
+            allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"],
+        })
+    );
     app.use(express.json());
-    app.use(express.urlencoded({extended: false}));
+    app.use(express.urlencoded({ extended: false }));
     app.use(express.static(process.env.PUBLIC_DIR));
     app.use((req, res) => res.redirect("/"));
 
@@ -47,7 +50,6 @@ async function startServer(): Promise<void> {
             root: process.env.PUBLIC_DIR,
         });
     });
-
 
     // database initialization
     await initDbIfNotExists();
@@ -68,9 +70,6 @@ async function startServer(): Promise<void> {
     app.listen(process.env.PORT, () => {
         console.log(`Start app, listening at http://localhost:${process.env.PORT}`);
     });
-
-    // repository demonstration
-    // testCategories();
 }
 
 startServer();

@@ -7,16 +7,18 @@
   "main": "dist/main.js",
   "scripts": {
     "start": "npx tsc && node dist/main.js",
-    "test": "echo Not today",
+    "test": "npx tsc && node dist/tests.js",
     "clone-front": "rmdir zlagoda_frontend /s /q && git clone https://github.com/mitryp/zlagoda_frontend -b presentation"
   },
   "dependencies": {
+    "bcrypt": "^5.1.0",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "sqlite3": "^5.1.6"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.0",
     "@types/cors": "^2.8.13",
     "@types/express": "^4.17.17",
     "@types/node": "^18.15.10",
