@@ -1,8 +1,8 @@
-import { Database } from "sqlite3";
-import { Repository } from "./repository";
-import { IEmployeeInput, IEmployeeOutput, EmployeePK, IUser } from "../data_types/employee";
-import { QueryStrategy } from "../queryStrategy";
-import { sql } from "../dbHelpers";
+import {Database} from "sqlite3";
+import {Repository} from "./repository";
+import {EmployeePK, IEmployeeInput, IEmployeeOutput, IUser} from "../data_types/employee";
+import {QueryStrategy} from "../queryStrategy";
+import {sql} from "../dbHelpers";
 
 const EMPLOYEE_QUERY_STRATEGY: QueryStrategy = {
     selectStrategy: {
@@ -74,7 +74,7 @@ const EMPLOYEE_QUERY_STRATEGY: QueryStrategy = {
      * Selects a specific user by login.
      */
     userSelectStrategy: sql`
-        SELECT id_employee, login, empl_role, empl_name, empl_patronymic, empl_surname
+        SELECT id_employee, login, empl_role, empl_name, empl_patronymic, empl_surname, password_hash
         FROM Employee
         WHERE login = ?`,
     // password hash is selected separately from the rest of the user's data
@@ -130,8 +130,10 @@ export class EmployeeRepository extends Repository<EmployeePK, IEmployeeInput, I
         ];
     }
 
-    public async selectUser(login: string): Promise<IUser> {
+    public async selectUser(login: string): Promise<IUser | null> {
         const row: Object = await this.specializedSelectFirst("userSelectStrategy", [login]);
+        if (!row) return null;
+
         return {
             userId: row["id_employee"],
             login: row["login"],
@@ -141,6 +143,7 @@ export class EmployeeRepository extends Repository<EmployeePK, IEmployeeInput, I
                 middleName: row["empl_patronymic"],
                 lastName: row["empl_surname"],
             },
+            password_hash: row["password_hash"],
         };
     }
 

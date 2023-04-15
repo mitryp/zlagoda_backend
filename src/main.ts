@@ -1,10 +1,38 @@
 import * as express from "express";
 import * as cors from "cors";
 import * as dotenv from "dotenv";
-import { initDbIfNotExists } from "./model/dataSchema";
+import {initDbIfNotExists} from "./model/dataSchema";
+import {initAuth} from "./services/auth/auth_utils";
+import {loginRouter} from "./routers/loginRouter";
+
 dotenv.config();
 
 const app = express();
+
+function applyMiddlewares() {
+    // logs all requests
+    app.use((req, res, next) => {
+        console.log(`${new Date().toTimeString()} - ${req.method} ${req.url}`);
+        next();
+    });
+
+    app.use(
+        cors({
+            allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"],
+        })
+    );
+    app.use(express.json());
+    app.use(express.urlencoded({extended: false}));
+    app.use(express.static(process.env.PUBLIC_DIR));
+
+    app.use((req, res, next) => {
+        if (!req.path.startsWith('/api')) {
+            console.log('Redirecting to /');
+            return res.redirect("/");
+        }
+        next();
+    });
+}
 
 /**
  In the world of code, where lines never end,
@@ -34,15 +62,7 @@ const app = express();
  */
 async function startServer(): Promise<void> {
     // middleware setup
-    app.use(
-        cors({
-            allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"],
-        })
-    );
-    app.use(express.json());
-    app.use(express.urlencoded({ extended: false }));
-    app.use(express.static(process.env.PUBLIC_DIR));
-    app.use((req, res) => res.redirect("/"));
+    applyMiddlewares();
 
     // frontend serving setup
     app.get("/", (req, res) => {
@@ -53,6 +73,18 @@ async function startServer(): Promise<void> {
 
     // database initialization
     await initDbIfNotExists();
+
+    // auth initialization
+    const [authService, auth] = await initAuth();
+
+    // auth routes
+    app.use('/api/login', loginRouter(authService, auth));
+
+    // auth examples:
+    // any position:
+    // app.get('/categories', auth.requirePosition(), (req, res) => {});
+    // exact position:
+    // app.get('/employees', auth.requirePosition('manager'), (req, res) => {});
 
     // api routes
     // employee

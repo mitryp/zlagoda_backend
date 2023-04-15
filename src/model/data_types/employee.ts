@@ -1,3 +1,5 @@
+export type EmployeePosition = "cashier" | "manager";
+
 export interface IEmployeeOutput {
     employeeId: string;
     name: {
@@ -5,7 +7,7 @@ export interface IEmployeeOutput {
         middleName: null | string;
         lastName: string;
     };
-    position: string;
+    position: EmployeePosition;
     salary: number;
     workStartDate: number;
     birthDate: number;
@@ -25,7 +27,7 @@ export interface IEmployeeInput {
         middleName: null | string;
         lastName: string;
     };
-    position: string;
+    position: EmployeePosition;
     salary: number;
     workStartDate: number;
     birthDate: number;
@@ -45,10 +47,15 @@ export type EmployeePK = string;
 export interface IUser {
     userId: string;
     login: string;
-    role: string;
+    role: EmployeePosition;
     name: {
         firstName: string;
         middleName: null | string;
         lastName: string;
     };
+
+    // authorization information
+    // password_hash is only present when backend is validating the token
+    token?: string;
+    password_hash?: string;
 }
