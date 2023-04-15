@@ -2,7 +2,7 @@ import { Database, OPEN_READWRITE } from "sqlite3";
 import { DbHelpers } from "./model/dbHelpers";
 import { CategoryRepository } from "./model/repositories/categoryRepository";
 import { EmployeeRepository } from "./model/repositories/employeeRepository";
-import { hashPassword, validateCredentials } from "./auth/utils";
+import { hashPassword } from "./services/auth/auth_utils";
 import { IEmployeeInput, IUser } from "./model/data_types/employee";
 import { initDbIfNotExists } from "./model/dataSchema";
 import * as fs from "fs";
@@ -67,10 +67,10 @@ async function testEmployees(db: Database): Promise<void> {
     const employee = await repo.selectFirst([{ key: "surnameFilter", params: ["енко"] }]);
     console.log("found employee", employee);
 
-    console.log("validating passwords");
-    console.log("valid password:", await validateCredentials("cashier", "cashier"));
-    console.log("invalid password to valid login:", await validateCredentials("cashier", "not cashier"));
-    console.log("invalid login:", await validateCredentials("someone else", "cashier"));
+    // console.log("validating passwords");
+    // console.log("valid password:", await validateCredentials("cashier", "cashier"));
+    // console.log("invalid password to valid login:", await validateCredentials("cashier", "not cashier"));
+    // console.log("invalid login:", await validateCredentials("someone else", "cashier"));
 
     cashier.name.firstName = "Іван";
     await repo.update("myid", cashier);

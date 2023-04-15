@@ -4,7 +4,7 @@ import * as dotenv from "dotenv";
 
 import { DbHelpers, sql } from "./dbHelpers";
 import { IEmployeeInput } from "./data_types/employee";
-import { hashPassword } from "../auth/utils";
+import { hashPassword } from "../services/auth/auth_utils";
 import { EmployeeRepository } from "./repositories/employeeRepository";
 
 dotenv.config();
