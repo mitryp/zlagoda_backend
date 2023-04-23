@@ -1,9 +1,12 @@
 import * as express from "express";
 import * as cors from "cors";
 import * as dotenv from "dotenv";
-import {initDbIfNotExists} from "./model/dataSchema";
-import {initAuth} from "./services/auth/auth_utils";
-import {loginRouter} from "./routers/loginRouter";
+import { initDbIfNotExists } from "./model/dataSchema";
+import { initAuth } from "./services/auth/auth_utils";
+import { loginRouter } from "./routers/loginRouter";
+import { productRouter } from "./routers/productRouter";
+import { categoryRouter } from "./routers/categoryRouter";
+import { employeeRouter } from "./routers/employeeRouter";
 
 dotenv.config();
 
@@ -22,12 +25,12 @@ function applyMiddlewares() {
         })
     );
     app.use(express.json());
-    app.use(express.urlencoded({extended: false}));
+    app.use(express.urlencoded({ extended: false }));
     app.use(express.static(process.env.PUBLIC_DIR));
 
     app.use((req, res, next) => {
-        if (!req.path.startsWith('/api')) {
-            console.log('Redirecting to /');
+        if (!req.path.startsWith("/api")) {
+            console.log("Redirecting to /");
             return res.redirect("/");
         }
         next();
@@ -78,8 +81,9 @@ async function startServer(): Promise<void> {
     const [authService, auth] = await initAuth();
 
     // auth routes
-    app.use('/api/login', loginRouter(authService, auth));
+    app.use("/api/login", loginRouter(authService, auth));
 
+    app.use("/api/categories", categoryRouter(auth));
     // auth examples:
     // any position:
     // app.get('/categories', auth.requirePosition(), (req, res) => {});
