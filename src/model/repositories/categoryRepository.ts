@@ -3,6 +3,7 @@ import { Repository } from "./repository";
 import { ICategoryInput, ICategoryOutput, CategoryPK } from "../data_types/category";
 import { QueryStrategy } from "../queryStrategy";
 import { sql } from "../dbHelpers";
+import { IShort } from "../data_types/general";
 
 const CATEGORY_QUERY_STRATEGY: QueryStrategy = {
     selectStrategy: {
@@ -11,13 +12,13 @@ const CATEGORY_QUERY_STRATEGY: QueryStrategy = {
             FROM Category
             WHERE TRUE`,
         filteringStrategy: {
-            numberFilter: sql`
+            primaryKeyFilter: sql`
                 AND category_number = ?`,
             nameFilter: sql`
                 AND category_name = ?`,
         },
         sortingStrategy: {
-            nameOrder: {
+            categoryNameOrder: {
                 asc: sql`
                     ORDER BY category_name ASC`,
                 desc: sql`
@@ -30,18 +31,29 @@ const CATEGORY_QUERY_STRATEGY: QueryStrategy = {
     updateStrategy: sql`
         UPDATE Category
         SET category_name = ?
-        WHERE category_number = ?`,
+        WHERE category_number = ?
+        RETURNING category_number`,
     insertStrategy: sql`
         INSERT INTO Category (category_name)
-        VALUES (?)`,
+        VALUES (?)
+        RETURNING category_number`,
     deleteStrategy: sql`
         DELETE FROM Category
         WHERE category_number = ?`,
+
+    shortSelectQueryStrategy: sql`
+        SELECT category_number, category_name
+        FROM Category`,
 };
 
 export class CategoryRepository extends Repository<CategoryPK, ICategoryInput, ICategoryOutput> {
     constructor(db: Database) {
         super(db, CATEGORY_QUERY_STRATEGY);
+    }
+
+    public async allInShort(): Promise<IShort> {
+        const row = await this.specializedSelectFirst("shortSelectQueryStrategy");
+        return { primaryKey: row["category_number"], descriptiveAttr: row["category_name"] };
     }
 
     protected castToOutput(row: Object): ICategoryOutput {

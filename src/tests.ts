@@ -20,7 +20,7 @@ async function testCategories(db: Database): Promise<void> {
     console.log("after insertion:", await repo.select());
 
     // search for a category name
-    const category = await repo.selectFirst([{ key: "nameFilter", params: ["Dairy"] }]);
+    const category = await repo.selectFirst([{ key: "nameFilter", param: "Dairy" }]);
     console.log("found category", category);
 
     await repo.update(category.categoryNumber, { categoryName: "Not Dairy Anymore" });
@@ -64,7 +64,7 @@ async function testEmployees(db: Database): Promise<void> {
     console.log("after insertion:", await repo.select());
 
     // search for an employee surname
-    const employee = await repo.selectFirst([{ key: "surnameFilter", params: ["енко"] }]);
+    const employee = await repo.selectFirst([{ key: "surnameFilter", param: "енко" }]);
     console.log("found employee", employee);
 
     // console.log("validating passwords");

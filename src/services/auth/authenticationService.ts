@@ -1,8 +1,8 @@
-import {Database} from "sqlite3";
-import {IUser} from "../../model/data_types/employee";
-import {EmployeeRepository} from "../../model/repositories/employeeRepository";
-import {validatePassword} from "./auth_utils";
-import {TokenStorage} from "./tokenStorage";
+import { Database } from "sqlite3";
+import { IUser } from "../../model/data_types/employee";
+import { EmployeeRepository } from "../../model/repositories/employeeRepository";
+import { validatePassword } from "./auth_utils";
+import { TokenStorage } from "./tokenStorage";
 
 export class AuthenticationService {
     employeeRepository: EmployeeRepository;
@@ -14,8 +14,7 @@ export class AuthenticationService {
     async login(login: string, password: string): Promise<IUser | null> {
         const user = await this.employeeRepository.selectUser(login);
 
-        if (!user || !await validatePassword(password, user.password_hash!))
-            return null;
+        if (!user || !(await validatePassword(password, user.password_hash!))) return null;
 
         user.token = await this.sessionStorage.issueToken(user);
         user.password_hash = undefined;

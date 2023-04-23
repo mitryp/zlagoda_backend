@@ -1,8 +1,8 @@
-import {Database} from "sqlite3";
-import {Repository} from "./repository";
-import {EmployeePK, IEmployeeInput, IEmployeeOutput, IUser} from "../data_types/employee";
-import {QueryStrategy} from "../queryStrategy";
-import {sql} from "../dbHelpers";
+import { Database } from "sqlite3";
+import { Repository } from "./repository";
+import { EmployeePK, IEmployeeInput, IEmployeeOutput, IUser } from "../data_types/employee";
+import { QueryStrategy } from "../queryStrategy";
+import { sql } from "../dbHelpers";
 
 const EMPLOYEE_QUERY_STRATEGY: QueryStrategy = {
     selectStrategy: {
@@ -11,15 +11,17 @@ const EMPLOYEE_QUERY_STRATEGY: QueryStrategy = {
             FROM Employee
             WHERE TRUE`,
         filteringStrategy: {
-            idFilter: sql`
+            primaryKeyFilter: sql`
                 AND id_employee = ?`,
-            roleFilter: sql`
+            positionFilter: sql`
                 AND role = ?`,
-            surnameFilter: sql`
-                AND lower(empl_surname) LIKE '%' || lower(?) || '%'`,
+            employeeSurnameFilter: sql`
+                AND empl_surname LIKE '%' || ? || '%'`,
+            loginFilter: sql`
+                AND login = ?`, // for employees requesting information about themselves
         },
         sortingStrategy: {
-            surnameOrder: {
+            employeeSurnameOrder: {
                 asc: sql`
                     ORDER BY empl_surname ASC`,
                 desc: sql`
@@ -47,7 +49,8 @@ const EMPLOYEE_QUERY_STRATEGY: QueryStrategy = {
             zip_code = ?,
             login = ?,
             password_hash = NULLIF(?, password_hash)
-        WHERE id_employee = ?`,
+        WHERE id_employee = ?
+        RETURNING id_employee`,
     insertStrategy: sql`
         INSERT INTO Employee (
             id_employee,
@@ -65,7 +68,8 @@ const EMPLOYEE_QUERY_STRATEGY: QueryStrategy = {
             login,
             password_hash
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        RETURNING id_employee`,
     deleteStrategy: sql`
         DELETE FROM Employee
         WHERE id_employee = ?`,
@@ -73,13 +77,8 @@ const EMPLOYEE_QUERY_STRATEGY: QueryStrategy = {
     /**
      * Selects a specific user by login.
      */
-    userSelectStrategy: sql`
+    userSelectQueryStrategy: sql`
         SELECT id_employee, login, empl_role, empl_name, empl_patronymic, empl_surname, password_hash
-        FROM Employee
-        WHERE login = ?`,
-    // password hash is selected separately from the rest of the user's data
-    userPasswordHashSelectStrategy: sql`
-        SELECT password_hash
         FROM Employee
         WHERE login = ?`,
 };
@@ -131,7 +130,7 @@ export class EmployeeRepository extends Repository<EmployeePK, IEmployeeInput, I
     }
 
     public async selectUser(login: string): Promise<IUser | null> {
-        const row: Object = await this.specializedSelectFirst("userSelectStrategy", [login]);
+        const row: Object = await this.specializedSelectFirst("userSelectQueryStrategy", [login]);
         if (!row) return null;
 
         return {
@@ -145,10 +144,5 @@ export class EmployeeRepository extends Repository<EmployeePK, IEmployeeInput, I
             },
             password_hash: row["password_hash"],
         };
-    }
-
-    public async selectUserPasswordHash(login: string): Promise<string> {
-        const row: Object = await this.specializedSelectFirst("userPasswordHashSelectStrategy", [login]);
-        return row ? row["password_hash"] : null;
     }
 }

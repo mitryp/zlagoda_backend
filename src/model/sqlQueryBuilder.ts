@@ -42,7 +42,7 @@ export class SqlQueryBuilder {
         let query: string = selectStrategy.baseClause;
         query += customSQLFilters ?? this.buildSelectFilters(params.filters);
         if (params.order !== null) query += "\n" + selectStrategy.sortingStrategy[params.order.key][params.order.asc ? "asc" : "desc"];
-        query += "\n" + selectStrategy.pagination + ";";
+        query += ";";
 
         console.log("Built SELECT query:\n" + query);
 
@@ -61,8 +61,8 @@ export class SqlQueryBuilder {
         return this.queryStrategy.deleteStrategy + ";";
     }
 
-    public buildCustomSelect(key: string): string {
-        assert(key.endsWith("SelectStrategy")); // to prevent accidents during development
+    public buildCustomQuery(key: string): string {
+        assert(key.endsWith("QueryStrategy")); // to prevent accidents during development
         return this.queryStrategy[key] + ";";
     }
 }

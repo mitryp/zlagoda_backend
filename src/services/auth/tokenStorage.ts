@@ -1,5 +1,5 @@
-import {IUser} from "../../model/data_types/employee";
-import {generateSessionToken, newExpireDate} from "./auth_utils";
+import { IUser } from "../../model/data_types/employee";
+import { generateSessionToken, newExpireDate } from "./auth_utils";
 
 export class TokenStorage {
     // token : [User, expireDate(milliseconds)]

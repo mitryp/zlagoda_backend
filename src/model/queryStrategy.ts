@@ -2,6 +2,7 @@
  * Collection of possible filters.
  */
 type FilteringStrategy = {
+    primaryKeyFilter: string;
     /**
      * Template for a property with filtering conditions.
      * The stored string is directly concatenated with the WHERE clause.
@@ -53,7 +54,7 @@ type SelectStrategy = {
 /**
  * E.g. 'INSERT INTO Category (category_name) VALUES (?)'
  */
-type InsertStrategy = string;
+type InsertStrategy = string; // ensures that all such queries return the pk, allowing the abstract repository to definitively work with pk
 
 /**
  * E.g. 'DELETE FROM Category WHERE category_number = ?'
@@ -67,8 +68,9 @@ type UpdateStrategy = string;
 
 /**
  * E.g. 'SELECT COUNT(*) FROM Category'
+ * or 'INSERT INTO Sale VALUES (?, ?, ?, ?)'
  */
-type CustomSelectStrategy = string;
+type CustomQueryStrategy = string;
 
 /**
  * Full collection of possible queries for a repository.
@@ -80,9 +82,9 @@ type QueryStrategy = {
     deleteStrategy: DeleteStrategy;
 
     /**
-     * Specialized select strategies outside of regular CRUD, e.g. for statistical queries.
+     * Specialized select / command strategies outside of regular CRUD, e.g. for statistical queries.
      */
-    [key: `${string}SelectStrategy`]: CustomSelectStrategy;
+    [key: `${string}QueryStrategy`]: CustomQueryStrategy;
 };
 
-export { QueryStrategy, SelectStrategy, FilteringStrategy, SortingStrategy, InsertStrategy, UpdateStrategy, DeleteStrategy, CustomSelectStrategy };
+export { QueryStrategy, SelectStrategy, FilteringStrategy, SortingStrategy, InsertStrategy, UpdateStrategy, DeleteStrategy, CustomQueryStrategy };

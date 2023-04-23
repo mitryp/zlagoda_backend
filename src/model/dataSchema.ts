@@ -17,9 +17,9 @@ async function generateDb(): Promise<void> {
     let query = sql`
         CREATE TABLE IF NOT EXISTS Category (
             category_number INTEGER PRIMARY KEY,
-            category_name TEXT NOT NULL CHECK (LENGTH(category_name) <= 50)
+            category_name TEXT UNIQUE NOT NULL CHECK (LENGTH(category_name) <= 50)
         )
-    `;
+    `; // category_name is made UNIQUE because users should be able to deterministically identify a category from its name, as the number is internal to the database and not shown
     await DbHelpers.run(db, query, "Create table Category");
 
     // Product
@@ -28,6 +28,7 @@ async function generateDb(): Promise<void> {
             UPC TEXT PRIMARY KEY CHECK (LENGTH(UPC) <= 12),
             category_number INTEGER NOT NULL,
             product_name TEXT NOT NULL CHECK (LENGTH(product_name) <= 50),
+            manufacturer TEXT NOT NULL CHECK (LENGTH(manufacturer) <= 50),
             characteristics TEXT NOT NULL CHECK (LENGTH(characteristics) <= 100),
             FOREIGN KEY (category_number)
                 REFERENCES Category (category_number)
@@ -50,10 +51,10 @@ async function generateDb(): Promise<void> {
             FOREIGN KEY (id_product_base)
                 REFERENCES Store_Product (id_product)
                 ON UPDATE CASCADE
-                ON DELETE RESTRICT,
+                ON DELETE CASCADE,
             FOREIGN KEY (UPC)
                 REFERENCES Product (UPC)
-                ON UPDATE RESTRICT
+                ON UPDATE CASCADE
                 ON DELETE RESTRICT
         )
     `;

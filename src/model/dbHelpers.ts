@@ -22,7 +22,8 @@ export class DbHelpers {
                     reject(err);
                 } else {
                     console.log(successMsg);
-                    resolve(db);
+                    this.run(db, "PRAGMA foreign_keys = ON", "Enable foreign keys for new connection") // foreign keys have to be explicitly enabled for each new connection to sqlite database
+                        .then(() => resolve(db));
                 }
             });
         });
@@ -42,7 +43,7 @@ export class DbHelpers {
                     reject(err);
                 } else {
                     console.log(successMsg);
-                    resolve(null); // no useful information to resolve with on success
+                    resolve(); // no useful information to resolve with on success
                 }
             });
         });
@@ -64,7 +65,7 @@ export class DbHelpers {
                     reject(err);
                 } else {
                     console.log(successMsg);
-                    resolve(null);
+                    resolve();
                 }
             });
         });
@@ -87,6 +88,28 @@ export class DbHelpers {
                 } else {
                     console.log(successMsg);
                     resolve(rows);
+                }
+            });
+        });
+    }
+
+    /**
+     * Runs a SELECT query, returns first match or undefined instead of an array.
+     * @param {Database} db - Connection to the database.
+     * @param {string} query - Query.
+     * @param {string} successMsg - Message to log in console on success.
+     * @param {Array} params - What question marks will be substituted with in a query (protecting from SQL injection).
+     * @returns {Promise<Object | null>} Promise that resolves with the resulting row, or null if none are found.
+     */
+    static async selectFirst(db: Database, query: string, successMsg: string, params: unknown[] = []): Promise<Object | null> {
+        return new Promise<Object | null>((resolve, reject) => {
+            db.get(query, params, (err, row) => {
+                if (err) {
+                    console.error(err);
+                    reject(err);
+                } else {
+                    console.log(successMsg);
+                    resolve(row ? row : null); // replace undefined with null for clarity
                 }
             });
         });
