@@ -8,7 +8,9 @@
   "scripts": {
     "start": "npx tsc && node dist/main.js",
     "test": "npx tsc && node dist/tests.js",
-    "clone-front": "rmdir zlagoda_frontend /s /q && git clone https://github.com/mitryp/zlagoda_frontend -b presentation"
+    "mockData": "npx tsc && node dist/mockData.js",
+    "clone-front": "rmdir zlagoda_frontend /s /q && git clone https://github.com/mitryp/zlagoda_frontend -b presentation",
+    "startc": "npm run clone-front && npm run start" 
   },
   "dependencies": {
     "bcrypt": "^5.1.0",
