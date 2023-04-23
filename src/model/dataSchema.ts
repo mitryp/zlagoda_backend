@@ -41,15 +41,15 @@ async function generateDb(): Promise<void> {
     // Store_Product
     query = sql`
         CREATE TABLE IF NOT EXISTS Store_Product (
-            id_product INTEGER PRIMARY KEY,
-            id_product_base INTEGER,
+            id_store_product INTEGER PRIMARY KEY,
+            id_store_product_base INTEGER,
             UPC TEXT NOT NULL,
             selling_price INTEGER NOT NULL CHECK (selling_price BETWEEN 0 AND 99999999999),
             products_number INTEGER NOT NULL CHECK (products_number >= 0),
             promotional_product BOOLEAN NOT NULL GENERATED ALWAYS
-                AS (id_product_base IS NOT NULL) STORED,
-            FOREIGN KEY (id_product_base)
-                REFERENCES Store_Product (id_product)
+                AS (id_store_product_base IS NOT NULL) STORED,
+            FOREIGN KEY (id_store_product_base)
+                REFERENCES Store_Product (id_store_product)
                 ON UPDATE CASCADE
                 ON DELETE CASCADE,
             FOREIGN KEY (UPC)
@@ -59,6 +59,9 @@ async function generateDb(): Promise<void> {
         )
     `;
     await DbHelpers.run(db, query, "Create table Store_Product");
+
+    // empl_fullname TEXT NOT NULL GENERATED ALWAYS
+    // AS (empl_surname || ' ' || empl_name || CASE WHEN empl_patronymic IS NOT NULL THEN ' ' || empl_patronymic ELSE '' END) STORED,
 
     // Employee
     query = sql`
@@ -126,13 +129,13 @@ async function generateDb(): Promise<void> {
     // Sale
     query = sql`
         CREATE TABLE IF NOT EXISTS Sale (
-            id_product INTEGER,
+            id_store_product INTEGER,
             receipt_number TEXT,
             product_number INTEGER NOT NULL,
             selling_price INTEGER NOT NULL CHECK (selling_price BETWEEN 0 AND 99999999999),
-            PRIMARY KEY (id_product, receipt_number),
-            FOREIGN KEY (id_product)
-                REFERENCES Store_Product (id_product)
+            PRIMARY KEY (id_store_product, receipt_number),
+            FOREIGN KEY (id_store_product)
+                REFERENCES Store_Product (id_store_product)
                 ON UPDATE CASCADE
                 ON DELETE RESTRICT,
             FOREIGN KEY (receipt_number)
