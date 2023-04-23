@@ -9,6 +9,7 @@ import { OrderParam } from "../model/sqlQueryBuilder";
 async function tryOpenDbForEndpoint(res: Response, write: boolean = false): Promise<Database> {
     try {
         const db = await DbHelpers.openDB("Opened database connection", write ? OPEN_READWRITE : OPEN_READONLY);
+        await DbHelpers.run(db, "BEGIN TRANSACTION", "Begun endpoint transaction");
         return db;
     } catch {
         internalError(res, "Failed to open database");
