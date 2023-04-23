@@ -6,7 +6,7 @@ export interface ICategoryInput {
 }
 
 export interface ICategoryOutput {
-    categoryNumber: number;
+    categoryNumber: CategoryPK;
     categoryName: string;
 }
 

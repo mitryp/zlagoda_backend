@@ -4,6 +4,7 @@ import { IProductInput, IProductOutput, ProductPK } from "../data_types/product"
 import { QueryStrategy } from "../queryStrategy";
 import { sql } from "../dbHelpers";
 import { IShort } from "../data_types/general";
+import { CategoryPK } from "../data_types/category";
 
 const PRODUCT_QUERY_STRATEGY: QueryStrategy = {
     selectStrategy: {
@@ -32,10 +33,10 @@ const PRODUCT_QUERY_STRATEGY: QueryStrategy = {
     },
     updateStrategy: sql`
         UPDATE Product
-        SET UPC = ?
-            category_number = ?
-            product_name = ?
-            manufacturer = ?
+        SET UPC = ?,
+            category_number = ?,
+            product_name = ?,
+            manufacturer = ?,
             characteristics = ?
         WHERE UPC = ?
         RETURNING UPC`,
@@ -57,9 +58,11 @@ export class ProductRepository extends Repository<ProductPK, IProductInput, IPro
         super(db, PRODUCT_QUERY_STRATEGY);
     }
 
-    public async allInShort(): Promise<IShort> {
-        const row = await this.specializedSelectFirst("shortSelectQueryStrategy");
-        return { primaryKey: row["UPC"], descriptiveAttr: row["product_name"] };
+    public async allInShort(): Promise<IShort[]> {
+        const rows = await this.specializedSelect("shortSelectQueryStrategy");
+        return rows.map((row) => {
+            return { primaryKey: row["UPC"], descriptiveAttr: row["product_name"] };
+        });
     }
 
     protected castToOutput(row: Object): IProductOutput {
@@ -73,7 +76,7 @@ export class ProductRepository extends Repository<ProductPK, IProductInput, IPro
         };
     }
 
-    protected castToParamsArray(dto: IProductInput): [string, number, string, string, string] {
+    protected castToParamsArray(dto: IProductInput): [ProductPK, CategoryPK, string, string, string] {
         return [dto.upc, dto.categoryId, dto.productName, dto.manufacturer, dto.specs];
     }
 }

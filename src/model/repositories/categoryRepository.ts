@@ -14,7 +14,7 @@ const CATEGORY_QUERY_STRATEGY: QueryStrategy = {
         filteringStrategy: {
             primaryKeyFilter: sql`
                 AND category_number = ?`,
-            nameFilter: sql`
+            categoryNameFilter: sql`
                 AND category_name = ?`,
         },
         sortingStrategy: {
@@ -51,9 +51,11 @@ export class CategoryRepository extends Repository<CategoryPK, ICategoryInput, I
         super(db, CATEGORY_QUERY_STRATEGY);
     }
 
-    public async allInShort(): Promise<IShort> {
-        const row = await this.specializedSelectFirst("shortSelectQueryStrategy");
-        return { primaryKey: row["category_number"], descriptiveAttr: row["category_name"] };
+    public async allInShort(): Promise<IShort[]> {
+        const rows = await this.specializedSelect("shortSelectQueryStrategy");
+        return rows.map((row) => {
+            return { primaryKey: row["category_number"], descriptiveAttr: row["category_name"] };
+        });
     }
 
     protected castToOutput(row: Object): ICategoryOutput {

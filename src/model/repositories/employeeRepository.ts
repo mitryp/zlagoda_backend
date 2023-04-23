@@ -110,7 +110,7 @@ export class EmployeeRepository extends Repository<EmployeePK, IEmployeeInput, I
         };
     }
 
-    protected castToParamsArray(dto: IEmployeeInput): [string, string, string | null, string, string, number, number, number, string, string, string, string, string, string | null] {
+    protected castToParamsArray(dto: IEmployeeInput): [EmployeePK, string, string | null, string, string, number, number, number, string, string, string, string, string, string | null] {
         return [
             dto.employeeId,
             dto.name.firstName,

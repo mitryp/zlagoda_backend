@@ -1,18 +1,21 @@
+import { CategoryPK } from "./category";
+
 export interface IProductOutput {
-    upc: string;
+    upc: ProductPK;
     productName: string;
     manufacturer: string;
     specs: string;
-    categoryId: number;
-    categoryName: string; // required for general-purpose viewing
+    categoryId: CategoryPK;
+    // joined for proper display
+    categoryName: string;
 }
 
 export interface IProductInput {
-    upc: string;
+    upc: ProductPK;
     productName: string;
     manufacturer: string;
     specs: string;
-    categoryId: number;
+    categoryId: CategoryPK;
 }
 
 export type ProductPK = string;

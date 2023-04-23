@@ -1,7 +1,7 @@
 export type EmployeePosition = "cashier" | "manager";
 
 export interface IEmployeeOutput {
-    employeeId: string;
+    employeeId: EmployeePK;
     name: {
         firstName: string;
         middleName: null | string;
@@ -21,7 +21,7 @@ export interface IEmployeeOutput {
 }
 
 export interface IEmployeeInput {
-    employeeId: string;
+    employeeId: EmployeePK;
     name: {
         firstName: string;
         middleName: null | string;
