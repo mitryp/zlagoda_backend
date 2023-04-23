@@ -84,6 +84,7 @@ async function startServer(): Promise<void> {
     app.use("/api/login", loginRouter(authService, auth));
 
     app.use("/api/categories", categoryRouter(auth));
+    app.use("/api/products", productRouter(auth));
     // auth examples:
     // any position:
     // app.get('/categories', auth.requirePosition(), (req, res) => {});
