@@ -15,27 +15,27 @@ export function categoryRouter(auth: Authorizer): Router {
         return output.rows; // will be sent via body
     });
 
-    setupDbRoute(router, "post", "", auth.requirePosition("manager"), true, async (req, res, db) => {
+    setupDbRoute(router, "post", "", auth.requirePosition("manager"), true, async (req, _res, db) => {
         const repo = new CategoryRepository(db);
-        return repo.insert(req.body);
+        return repo.insertAndReturn(req.body);
     });
 
-    setupDbRoute(router, "get", "/:id", auth.requirePosition("manager"), false, async (req, res, db) => {
+    setupDbRoute(router, "get", "/:id", auth.requirePosition("manager"), false, async (req, _res, db) => {
         const repo = new CategoryRepository(db);
         return repo.selectByPK(parseInt(req.params.id));
     });
 
-    setupDbRoute(router, "put", "/:id", auth.requirePosition("manager"), true, async (req, res, db) => {
+    setupDbRoute(router, "put", "/:id", auth.requirePosition("manager"), true, async (req, _res, db) => {
         const repo = new CategoryRepository(db);
-        return repo.update(parseInt(req.params.id), req.body);
+        return repo.updateAndReturn(parseInt(req.params.id), req.body);
     });
 
-    setupDbRoute(router, "delete", "/:id", auth.requirePosition("manager"), true, async (req, res, db) => {
+    setupDbRoute(router, "delete", "/:id", auth.requirePosition("manager"), true, async (req, _res, db) => {
         const repo = new CategoryRepository(db);
         return repo.delete(parseInt(req.params.id));
     });
 
-    setupDbRoute(router, "get", "/short", auth.requirePosition(), false, async (req, res, db) => {
+    setupDbRoute(router, "get", "/short", auth.requirePosition(), false, async (req, _res, db) => {
         const repo = new CategoryRepository(db);
         return repo.allInShort();
     });

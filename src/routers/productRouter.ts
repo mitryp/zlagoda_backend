@@ -15,27 +15,27 @@ export function productRouter(auth: Authorizer): Router {
         return output.rows; // will be sent via body
     });
 
-    setupDbRoute(router, "post", "", auth.requirePosition("manager"), true, async (req, _, db) => {
+    setupDbRoute(router, "post", "", auth.requirePosition("manager"), true, async (req, _res, db) => {
         const repo = new ProductRepository(db);
-        return repo.insert(req.body);
+        return repo.insertAndReturn(req.body);
     });
 
-    setupDbRoute(router, "get", "/:id", auth.requirePosition(), false, async (req, _, db) => {
+    setupDbRoute(router, "get", "/:id", auth.requirePosition(), false, async (req, _res, db) => {
         const repo = new ProductRepository(db);
         return repo.selectByPK(req.params.id);
     });
 
-    setupDbRoute(router, "put", "/:id", auth.requirePosition("manager"), true, async (req, _, db) => {
+    setupDbRoute(router, "put", "/:id", auth.requirePosition("manager"), true, async (req, _res, db) => {
         const repo = new ProductRepository(db);
-        return repo.update(req.params.id, req.body);
+        return repo.updateAndReturn(req.params.id, req.body);
     });
 
-    setupDbRoute(router, "delete", "/:id", auth.requirePosition("manager"), true, async (req, _, db) => {
+    setupDbRoute(router, "delete", "/:id", auth.requirePosition("manager"), true, async (req, _res, db) => {
         const repo = new ProductRepository(db);
         return repo.delete(req.params.id);
     });
 
-    setupDbRoute(router, "get", "/short", auth.requirePosition(), false, async (req, _, db) => {
+    setupDbRoute(router, "get", "/short", auth.requirePosition(), false, async (_req, _res, db) => {
         const repo = new ProductRepository(db);
         return repo.allInShort();
     });
