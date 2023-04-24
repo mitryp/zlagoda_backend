@@ -85,7 +85,7 @@ async function generateDb(): Promise<void> {
     // Customer_Card
     query = sql`
         CREATE TABLE IF NOT EXISTS Customer_Card (
-            card_number TEXT PRIMARY KEY CHECK (LENGTH(card_number) <= 10),
+            card_number TEXT PRIMARY KEY CHECK (LENGTH(card_number) <= 13),
             cust_surname TEXT NOT NULL CHECK (LENGTH(cust_surname) <= 50),
             cust_name NOT NULL CHECK (LENGTH(cust_name) <= 50),
             cust_patronymic TEXT CHECK (LENGTH(cust_patronymic) <= 50),
