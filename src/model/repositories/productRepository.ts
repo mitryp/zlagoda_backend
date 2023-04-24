@@ -28,8 +28,6 @@ const PRODUCT_QUERY_STRATEGY: QueryStrategy = {
                     ORDER BY product_name DESC`,
             },
         },
-        pagination: sql`
-            LIMIT ? OFFSET ?`,
     },
     updateStrategy: sql`
         UPDATE Product

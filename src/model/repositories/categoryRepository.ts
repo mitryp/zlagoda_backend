@@ -25,8 +25,6 @@ const CATEGORY_QUERY_STRATEGY: QueryStrategy = {
                     ORDER BY category_name DESC`,
             },
         },
-        pagination: sql`
-            LIMIT ? OFFSET ?`,
     },
     updateStrategy: sql`
         UPDATE Category

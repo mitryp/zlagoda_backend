@@ -27,8 +27,6 @@ const CLIENT_QUERY_STRATEGY: QueryStrategy = {
                     ORDER BY cust_surname DESC`,
             },
         },
-        pagination: sql`
-            LIMIT ? OFFSET ?`,
     },
     updateStrategy: sql`
         UPDATE Customer_Card

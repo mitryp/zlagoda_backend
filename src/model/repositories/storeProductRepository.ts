@@ -34,8 +34,6 @@ const STORE_PRODUCT_QUERY_STRATEGY: QueryStrategy = {
                     ORDER BY products_number DESC`,
             },
         },
-        pagination: sql`
-            LIMIT ? OFFSET ?`,
     },
     updateStrategy: sql`
         UPDATE Store_Product

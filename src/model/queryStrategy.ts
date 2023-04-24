@@ -45,10 +45,6 @@ type SelectStrategy = {
     baseClause: string;
     filteringStrategy: FilteringStrategy;
     sortingStrategy: SortingStrategy;
-    /**
-     * Pagination will always be the same in any SELECT query, it is added only to keep every query fully written out in one place.
-     */
-    pagination: string;
 };
 
 /**

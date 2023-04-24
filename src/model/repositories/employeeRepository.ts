@@ -28,8 +28,6 @@ const EMPLOYEE_QUERY_STRATEGY: QueryStrategy = {
                     ORDER BY empl_surname DESC`,
             },
         },
-        pagination: sql`
-            LIMIT ? OFFSET ?`,
     },
     // null value in password_hash parameter is an explicit indication that password should not be updated
     // the client cannot simply pass the current value as with other similar scenarios, since the current password hash is not available on the client
