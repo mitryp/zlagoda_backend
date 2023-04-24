@@ -15,8 +15,8 @@ const PRODUCT_QUERY_STRATEGY: QueryStrategy = {
         filteringStrategy: {
             primaryKeyFilter: sql`
                 AND UPC = ?`,
-            categoryFilter: sql`
-                AND category_number = ?`,
+            categoryIdFilter: sql`
+                AND Product.category_number = ?`,
             productNameFilter: sql`
                 AND product_name LIKE '%' || ? || '%'`,
         },
