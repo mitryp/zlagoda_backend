@@ -7,3 +7,15 @@ export interface IShort {
     primaryKey: string;
     descriptiveAttr: string;
 }
+
+export type Name = {
+    firstName: string;
+    middleName: null | string;
+    lastName: string;
+};
+
+export type Address = {
+    city: string;
+    street: string;
+    index: string;
+};
