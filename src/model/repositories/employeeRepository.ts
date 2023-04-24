@@ -14,7 +14,7 @@ const EMPLOYEE_QUERY_STRATEGY: QueryStrategy = {
             primaryKeyFilter: sql`
                 AND id_employee = ?`,
             positionFilter: sql`
-                AND role = ?`,
+                AND empl_role = ?`,
             employeeSurnameFilter: sql`
                 AND empl_surname LIKE '%' || ? || '%'`,
             loginFilter: sql`
