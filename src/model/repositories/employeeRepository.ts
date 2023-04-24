@@ -3,6 +3,7 @@ import { Repository } from "./repository";
 import { EmployeePK, IEmployeeInput, IEmployeeOutput, IUser } from "../data_types/employee";
 import { QueryStrategy } from "../queryStrategy";
 import { sql } from "../dbHelpers";
+import { IShort } from "../data_types/general";
 
 const EMPLOYEE_QUERY_STRATEGY: QueryStrategy = {
     selectStrategy: {
@@ -79,11 +80,23 @@ const EMPLOYEE_QUERY_STRATEGY: QueryStrategy = {
         SELECT id_employee, login, empl_role, empl_name, empl_patronymic, empl_surname, password_hash
         FROM Employee
         WHERE login = ?`,
+    // for selecting cashier in receipt filtering
+    cashierShortSelectQueryStrategy: sql`
+        SELECT id_employee, (empl_surname || ' ' || empl_name || (COALESCE(' ' || empl_patronymic, ''))) AS empl_fullname
+        FROM Employee
+        WHERE empl_role = 'cashier'`,
 };
 
 export class EmployeeRepository extends Repository<EmployeePK, IEmployeeInput, IEmployeeOutput> {
     constructor(db: Database) {
         super(db, EMPLOYEE_QUERY_STRATEGY);
+    }
+
+    public async cashiersInShort(): Promise<IShort[]> {
+        const rows = await this.specializedSelect("cashierShortSelectQueryStrategy");
+        return rows.map((row) => {
+            return { primaryKey: row["id_employee"], descriptiveAttr: row["empl_fullname"] };
+        });
     }
 
     protected castToOutput(row: Object): IEmployeeOutput {

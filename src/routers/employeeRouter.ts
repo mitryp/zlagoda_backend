@@ -16,6 +16,11 @@ export function employeeRouter(authService: AuthenticationService, auth: Authori
         return await repo.selectByPK(user.userId); // find employee corresponding to the user
     });
 
+    setupDbRoute(router, "get", "/cashiers/short", auth.requirePosition(), false, async (_req, _res, db) => {
+        const repo = new EmployeeRepository(db);
+        return repo.cashiersInShort();
+    });
+
     setupDbRoute(router, "get", "", auth.requirePosition("manager"), false, async (req, res, db) => {
         const repo = new EmployeeRepository(db);
         const { order, pagination } = parseCollectionQueryParams(req.query);
