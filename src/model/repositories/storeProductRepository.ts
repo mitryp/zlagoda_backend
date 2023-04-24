@@ -21,6 +21,12 @@ const STORE_PRODUCT_QUERY_STRATEGY: QueryStrategy = {
                 AND product_name LIKE '%' || ? || '%'`,
         },
         sortingStrategy: {
+            productNameOrder: {
+                asc: sql`
+                    ORDER BY product_name ASC`,
+                desc: sql`
+                    ORDER BY product_name DESC`,
+            },
             quantityOrder: {
                 asc: sql`
                     ORDER BY products_number ASC`,
