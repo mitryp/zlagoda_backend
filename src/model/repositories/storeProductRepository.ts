@@ -48,7 +48,7 @@ const PRODUCT_QUERY_STRATEGY: QueryStrategy = {
         WHERE id_store_product = ?`,
 
     shortSelectQueryStrategy: sql`
-        SELECT id_store_product, (Store_Product.UPC || ' ' || product_name) AS product, promotional_product
+        SELECT id_store_product, (Store_Product.UPC || ' ' || product_name || (CASE promotional_product WHEN TRUE THEN ' Акція' ELSE '' END)) AS desc
         FROM Store_Product JOIN Product ON Store_Product.UPC = Product.UPC`,
 };
 
@@ -60,7 +60,7 @@ export class StoreProductRepository extends Repository<StoreProductPK, IStorePro
     public async allInShort(): Promise<IShort[]> {
         const rows = await this.specializedSelect("shortSelectQueryStrategy");
         return rows.map((row) => {
-            return { primaryKey: row["id_store_product"], descriptiveAttr: row["product"] + (row["promotional_product"] ? " Акція" : "") };
+            return { primaryKey: row["id_store_product"], descriptiveAttr: row["desc"] };
         });
     }
 
