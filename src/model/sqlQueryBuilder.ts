@@ -1,5 +1,5 @@
 import * as assert from "assert";
-import { QueryStrategy, SelectStrategy, FilteringStrategy } from "./queryStrategy";
+import { StaticQueryStrategy, QueryStrategy, SelectStrategy, FilteringStrategy } from "./queryStrategy";
 
 export type SelectBuilderParams = {
     /**
@@ -18,11 +18,11 @@ export type OrderParam = {
     asc: boolean;
 };
 
-export class SqlQueryBuilder {
-    public constructor(protected queryStrategy: QueryStrategy) {}
+export class StaticSqlQueryBuilder {
+    public constructor(protected staticQueryStrategy: StaticQueryStrategy) {}
 
     protected buildSelectFilters(filters: string[]): string {
-        const filteringStrategy: FilteringStrategy = this.queryStrategy.selectStrategy.filteringStrategy;
+        const filteringStrategy: FilteringStrategy = this.staticQueryStrategy.selectStrategy.filteringStrategy;
         let result: string = "";
         filters.forEach((filter) => {
             result += "\n" + filteringStrategy[filter];
@@ -37,7 +37,7 @@ export class SqlQueryBuilder {
         } as SelectBuilderParams,
         customSQLFilters: string = null
     ): string {
-        const selectStrategy: SelectStrategy = this.queryStrategy.selectStrategy;
+        const selectStrategy: SelectStrategy = this.staticQueryStrategy.selectStrategy;
 
         let query: string = selectStrategy.baseClause;
         query += customSQLFilters ?? this.buildSelectFilters(params.filters);
@@ -50,19 +50,25 @@ export class SqlQueryBuilder {
     }
 
     public buildInsert(): string {
-        return this.queryStrategy.insertStrategy + ";";
-    }
-
-    public buildUpdate(): string {
-        return this.queryStrategy.updateStrategy + ";";
+        return this.staticQueryStrategy.insertStrategy + ";";
     }
 
     public buildDelete(): string {
-        return this.queryStrategy.deleteStrategy + ";";
+        return this.staticQueryStrategy.deleteStrategy + ";";
     }
 
     public buildCustomQuery(key: string): string {
         assert(key.endsWith("QueryStrategy")); // to prevent accidents during development
-        return this.queryStrategy[key] + ";";
+        return this.staticQueryStrategy[key] + ";";
+    }
+}
+
+export class SqlQueryBuilder extends StaticSqlQueryBuilder {
+    constructor(protected queryStrategy: QueryStrategy) {
+        super(queryStrategy); // passes the reference polymorphically to super as a static strategy, while reserving another, regular queryStrategy reference for accessing update
+    }
+
+    public buildUpdate(): string {
+        return this.queryStrategy.updateStrategy + ";";
     }
 }

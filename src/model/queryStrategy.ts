@@ -69,18 +69,25 @@ type UpdateStrategy = string;
 type CustomQueryStrategy = string;
 
 /**
- * Full collection of possible queries for a repository.
+ * Collection of all possible queries for a repository, without the update query (with this alone, the row data is "static":
+ * only ever inserted, selected, deleted, but not updated).
  */
-type QueryStrategy = {
+interface StaticQueryStrategy {
     selectStrategy: SelectStrategy;
     insertStrategy: InsertStrategy;
-    updateStrategy: UpdateStrategy;
     deleteStrategy: DeleteStrategy;
 
     /**
      * Specialized select / command strategies outside of regular CRUD, e.g. for statistical queries.
      */
     [key: `${string}QueryStrategy`]: CustomQueryStrategy;
-};
+}
 
-export { QueryStrategy, SelectStrategy, FilteringStrategy, SortingStrategy, InsertStrategy, UpdateStrategy, DeleteStrategy, CustomQueryStrategy };
+/**
+ * Full collection of possible queries for a repository (includes updates).
+ */
+interface QueryStrategy extends StaticQueryStrategy {
+    updateStrategy: UpdateStrategy;
+}
+
+export { StaticQueryStrategy, QueryStrategy, SelectStrategy, FilteringStrategy, SortingStrategy, InsertStrategy, UpdateStrategy, DeleteStrategy, CustomQueryStrategy };
