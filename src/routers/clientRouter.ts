@@ -14,7 +14,7 @@ export function clientRouter(auth: Authorizer): Router {
     setupDbRoute(router, "get", "", auth.requirePosition(), false, async (req, res, db) => {
         const repo = new ClientRepository(db);
         const { order, pagination } = parseCollectionQueryParams(req.query);
-        const filters = parseExpectedFilters(["clientSurnameFilter", "positionFilter"], req.query);
+        const filters = parseExpectedFilters(["clientSurnameFilter", "discountFilter"], req.query);
         const output = await repo.select(filters, order, pagination);
         res.setHeader("X-Total-Count", output.baseLength); // second element in the resulting tuple is a total length of the paginated results array, which is sent via header
         return output.rows; // will be sent via body
