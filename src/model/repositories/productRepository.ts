@@ -47,7 +47,7 @@ const PRODUCT_QUERY_STRATEGY: QueryStrategy = {
         WHERE UPC = ?`,
 
     shortSelectQueryStrategy: sql`
-        SELECT UPC, product_name
+        SELECT UPC, (product_name || ' ' || manufacturer) AS desc
         FROM Product`,
 };
 
@@ -59,7 +59,7 @@ export class ProductRepository extends Repository<ProductPK, IProductInput, IPro
     public async allInShort(): Promise<IShort[]> {
         const rows = await this.specializedSelect("shortSelectQueryStrategy");
         return rows.map((row) => {
-            return { primaryKey: row["UPC"], descriptiveAttr: row["product_name"] };
+            return { primaryKey: row["UPC"], descriptiveAttr: row["desc"] };
         });
     }
 
