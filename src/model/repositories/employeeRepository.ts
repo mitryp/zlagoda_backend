@@ -48,7 +48,7 @@ const EMPLOYEE_QUERY_STRATEGY: QueryStrategy = {
             street = ?,
             zip_code = ?,
             login = ?,
-            password_hash = NULLIF(?, password_hash)
+            password_hash = COALESCE(?, password_hash)
         WHERE id_employee = ?
         RETURNING id_employee`,
     insertStrategy: sql`
