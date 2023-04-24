@@ -6,7 +6,7 @@ import { sql } from "../dbHelpers";
 import { IShort } from "../data_types/general";
 import { ProductPK } from "../data_types/product";
 
-const PRODUCT_QUERY_STRATEGY: QueryStrategy = {
+const STORE_PRODUCT_QUERY_STRATEGY: QueryStrategy = {
     selectStrategy: {
         baseClause: sql`
             SELECT id_store_product, id_store_product_base, Store_Product.UPC AS UPC, selling_price, products_number, product_name, manufacturer 
@@ -54,7 +54,7 @@ const PRODUCT_QUERY_STRATEGY: QueryStrategy = {
 
 export class StoreProductRepository extends Repository<StoreProductPK, IStoreProductInput, IStoreProductOutput> {
     constructor(db: Database) {
-        super(db, PRODUCT_QUERY_STRATEGY);
+        super(db, STORE_PRODUCT_QUERY_STRATEGY);
     }
 
     public async allInShort(): Promise<IShort[]> {
