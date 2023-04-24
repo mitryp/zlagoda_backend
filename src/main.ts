@@ -9,6 +9,7 @@ import { productRouter } from "./routers/productRouter";
 import { categoryRouter } from "./routers/categoryRouter";
 import { employeeRouter } from "./routers/employeeRouter";
 import { storeProductRouter } from "./routers/storeProductRouter";
+import { clientRouter } from "./routers/clientRouter";
 
 const app = express();
 
@@ -87,6 +88,7 @@ async function startServer(): Promise<void> {
     app.use("/api/products", productRouter(auth));
     app.use("/api/store_products", storeProductRouter(auth));
     app.use("/api/employees", employeeRouter(authService, auth));
+    app.use("/api/clients", clientRouter(auth));
     // auth examples:
     // any position:
     // app.get('/categories', auth.requirePosition(), (req, res) => {});
