@@ -9,6 +9,13 @@ import { IEmployeeInput } from "../model/data_types/employee";
 export function employeeRouter(authService: AuthenticationService, auth: Authorizer): Router {
     const router = Router();
 
+    setupDbRoute(router, "get", "/me", auth.requirePosition(), false, async (req, _res, db) => {
+        const token = authDataOf(req).content; // parse bearer token from auth header
+        const user = await authService.validateToken(token); // get user by that token; user has employee id
+        const repo = new EmployeeRepository(db);
+        return await repo.selectByPK(user.userId); // find employee corresponding to the user
+    });
+
     setupDbRoute(router, "get", "", auth.requirePosition("manager"), false, async (req, res, db) => {
         const repo = new EmployeeRepository(db);
         const { order, pagination } = parseCollectionQueryParams(req.query);
@@ -34,7 +41,7 @@ export function employeeRouter(authService: AuthenticationService, auth: Authori
         const repo = new EmployeeRepository(db);
         const employee = req.body as IEmployeeInput;
         if (employee.password) employee.password = await hashPassword(employee.password); // if password is not null, hash it; might be null if request does not intend to change it
-        const output = repo.updateAndReturn(req.params.id, employee); // first perform the update, because it might fail and cause a fail response
+        const output = await repo.updateAndReturn(req.params.id, employee); // first perform the update, because it might fail and cause a fail response
         await authService.logout(req.params.id); // on successful update, log the employee out to force them to login again and receive relevant data
         return output;
     });
@@ -43,13 +50,6 @@ export function employeeRouter(authService: AuthenticationService, auth: Authori
         const repo = new EmployeeRepository(db);
         await repo.delete(req.params.id); // delete first, because the operation might fail
         await authService.logout(req.params.id); // on successful delete, log the employee out, because their account is no longer valid
-    });
-
-    setupDbRoute(router, "get", "/me", auth.requirePosition(), false, async(req, _res, db) => {
-        const token = authDataOf(req).content; // parse bearer token from auth header
-        const user = await authService.validateToken(token); // get user by that token; user has employee id
-        const repo = new EmployeeRepository(db);
-        return await repo.selectByPK(user.userId); // find employee corresponding to the user
     });
 
     return router;
