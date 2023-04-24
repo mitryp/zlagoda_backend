@@ -59,7 +59,7 @@ export class CategoryRepository extends Repository<CategoryPK, ICategoryInput, I
     }
 
     protected castToOutput(row: Object): ICategoryOutput {
-        return { categoryNumber: row["category_number"], categoryName: row["category_name"] };
+        return { categoryId: row["category_number"], categoryName: row["category_name"] };
     }
 
     protected castToParamsArray(dto: ICategoryInput): [string] {
