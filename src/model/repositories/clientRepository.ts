@@ -81,7 +81,7 @@ export class ClientRepository extends Repository<ClientPK, IClient, IClient> {
     protected castToOutput(row: Object): IClient {
         return {
             clientId: row["card_number"],
-            name: {
+            clientName: {
                 firstName: row["cust_name"],
                 middleName: row["cust_patronymic"],
                 lastName: row["cust_surname"],
@@ -101,9 +101,9 @@ export class ClientRepository extends Repository<ClientPK, IClient, IClient> {
     protected castToParamsArray(dto: IClient): [ClientPK, string, string | null, string, string, number, string | null, string | null, string | null] {
         return [
             dto.clientId,
-            dto.name.firstName,
-            dto.name.middleName, // may be null
-            dto.name.lastName,
+            dto.clientName.firstName,
+            dto.clientName.middleName, // may be null
+            dto.clientName.lastName,
             dto.phone,
             dto.discount,
             dto.address ? dto.address.city : null,

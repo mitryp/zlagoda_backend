@@ -40,7 +40,7 @@ async function generate(): Promise<void> {
 
     await employeeRepo.insert({
         employeeId: "01927830912",
-        name: {
+        employeeName: {
             firstName: "Петро",
             middleName: null,
             lastName: "Петренко",

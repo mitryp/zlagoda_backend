@@ -58,9 +58,6 @@ async function generateDb(): Promise<void> {
     `;
     await DbHelpers.run(db, query, "Create table Store_Product");
 
-    // empl_fullname TEXT NOT NULL GENERATED ALWAYS
-    // AS (empl_surname || ' ' || empl_name || CASE WHEN empl_patronymic IS NOT NULL THEN ' ' || empl_patronymic ELSE '' END) STORED,
-
     // Employee
     query = sql`
         CREATE TABLE IF NOT EXISTS Employee (
@@ -148,7 +145,7 @@ async function generateDb(): Promise<void> {
     // this is similar to the approach taken with default admin credentials on routers
     let defaultManager: IEmployeeInput = {
         employeeId: "0000000000",
-        name: {
+        employeeName: {
             firstName: "admin",
             middleName: null,
             lastName: "admin",

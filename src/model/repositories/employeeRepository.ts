@@ -91,7 +91,7 @@ export class EmployeeRepository extends Repository<EmployeePK, IEmployeeInput, I
     protected castToOutput(row: Object): IEmployeeOutput {
         return {
             employeeId: row["id_employee"],
-            name: {
+            employeeName: {
                 firstName: row["empl_name"],
                 middleName: row["empl_patronymic"],
                 lastName: row["empl_surname"],
@@ -113,9 +113,9 @@ export class EmployeeRepository extends Repository<EmployeePK, IEmployeeInput, I
     protected castToParamsArray(dto: IEmployeeInput): [EmployeePK, string, string | null, string, string, number, number, number, string, string, string, string, string, string | null] {
         return [
             dto.employeeId,
-            dto.name.firstName,
-            dto.name.middleName, // may be null
-            dto.name.lastName,
+            dto.employeeName.firstName,
+            dto.employeeName.middleName, // may be null
+            dto.employeeName.lastName,
             dto.position,
             dto.salary,
             dto.workStartDate,

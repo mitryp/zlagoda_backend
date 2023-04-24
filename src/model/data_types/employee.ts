@@ -2,7 +2,7 @@ export type EmployeePosition = "cashier" | "manager";
 
 export interface IEmployeeOutput {
     employeeId: EmployeePK;
-    name: {
+    employeeName: {
         firstName: string;
         middleName: null | string;
         lastName: string;
@@ -22,7 +22,7 @@ export interface IEmployeeOutput {
 
 export interface IEmployeeInput {
     employeeId: EmployeePK;
-    name: {
+    employeeName: {
         firstName: string;
         middleName: null | string;
         lastName: string;

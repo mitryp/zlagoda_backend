@@ -1,6 +1,6 @@
 export interface IClient {
     clientId: ClientPK;
-    name: {
+    clientName: {
         firstName: string;
         middleName: null | string;
         lastName: string;
