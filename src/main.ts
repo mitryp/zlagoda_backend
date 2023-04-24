@@ -1,14 +1,14 @@
+import * as dotenv from "dotenv";
+dotenv.config();
 import * as express from "express";
 import * as cors from "cors";
-import * as dotenv from "dotenv";
 import { initDbIfNotExists } from "./model/dataSchema";
 import { initAuth } from "./services/auth/auth_utils";
 import { loginRouter } from "./routers/loginRouter";
 import { productRouter } from "./routers/productRouter";
 import { categoryRouter } from "./routers/categoryRouter";
 import { employeeRouter } from "./routers/employeeRouter";
-
-dotenv.config();
+import { storeProductRouter } from "./routers/storeProductRouter";
 
 const app = express();
 
@@ -85,6 +85,7 @@ async function startServer(): Promise<void> {
 
     app.use("/api/categories", categoryRouter(auth));
     app.use("/api/products", productRouter(auth));
+    app.use("/api/store_products", storeProductRouter(auth));
     app.use("/api/employees", employeeRouter(authService, auth));
     // auth examples:
     // any position:

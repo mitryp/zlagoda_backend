@@ -7,8 +7,6 @@ import { IEmployeeInput } from "./data_types/employee";
 import { hashPassword } from "../services/auth/auth_utils";
 import { EmployeeRepository } from "./repositories/employeeRepository";
 
-dotenv.config();
-
 async function generateDb(): Promise<void> {
     console.log("Generating database schema");
     const db = await DbHelpers.openDB("Open database connection", OPEN_READWRITE | OPEN_CREATE);

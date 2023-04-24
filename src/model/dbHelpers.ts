@@ -1,8 +1,5 @@
 import { Database, OPEN_READONLY } from "sqlite3";
-import * as dotenv from "dotenv";
 import { strictEqual } from "assert";
-
-dotenv.config();
 
 /**
  * Class encapsulating common functionality for accessing the database.

@@ -1,3 +1,5 @@
+import * as dotenv from "dotenv";
+dotenv.config();
 import { OPEN_READWRITE } from "sqlite3";
 import { initDbIfNotExists } from "./model/dataSchema";
 import { DbHelpers } from "./model/dbHelpers";
