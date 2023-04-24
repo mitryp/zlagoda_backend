@@ -17,6 +17,8 @@ const STORE_PRODUCT_QUERY_STRATEGY: QueryStrategy = {
                 AND id_store_product = ?`,
             upcFilter: sql`
                 AND UPC = ?`,
+            isPromFilter: sql`
+                AND promotional_product = ?`,
             productNameFilter: sql`
                 AND product_name LIKE '%' || ? || '%'`,
         },
