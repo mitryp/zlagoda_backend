@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { Database } from "sqlite3";
+import { Database } from "better-sqlite3";
 
 export type ExpressMiddleware = (req: Request, res: Response, next: NextFunction) => void;
 export type ExpressController = (req: Request, res: Response) => void;

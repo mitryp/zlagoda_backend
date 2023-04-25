@@ -1,4 +1,4 @@
-import { Database } from "sqlite3";
+import { Database } from "better-sqlite3";
 import { Repository } from "./repository";
 import { ClientPK, IClient } from "../data_types/client";
 import { QueryStrategy } from "../queryStrategy";
@@ -17,7 +17,7 @@ const CLIENT_QUERY_STRATEGY: QueryStrategy = {
             discountFilter: sql`
                 AND percent = ?`,
             clientSurnameFilter: sql`
-                AND cust_surname LIKE '%' || ? || '%'`,
+                AND lower(cust_surname) LIKE '%' || lower(?) || '%'`,
         },
         sortingStrategy: {
             clientSurnameOrder: {

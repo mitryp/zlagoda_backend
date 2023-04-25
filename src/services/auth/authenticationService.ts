@@ -1,4 +1,4 @@
-import { Database } from "sqlite3";
+import { Database } from "better-sqlite3";
 import { IUser } from "../../model/data_types/employee";
 import { EmployeeRepository } from "../../model/repositories/employeeRepository";
 import { validatePassword } from "./auth_utils";

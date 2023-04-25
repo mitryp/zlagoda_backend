@@ -15,8 +15,7 @@ export function categoryRouter(auth: Authorizer): Router {
     setupDbRoute(router, "get", "", auth.requirePosition("manager"), false, async (req, res, db) => {
         const repo = new CategoryRepository(db);
         const { order, pagination } = parseCollectionQueryParams(req.query);
-        const filters = parseExpectedFilters(["categoryNameFilter"], req.query);
-        const output = await repo.select(filters, order, pagination);
+        const output = await repo.select([], order, pagination);
         res.setHeader("X-Total-Count", output.baseLength); // second element in the resulting tuple is a total length of the paginated results array, which is sent via header
         return output.rows; // will be sent via body
     });

@@ -1,4 +1,4 @@
-import { Database } from "sqlite3";
+import { Database } from "better-sqlite3";
 import { Repository } from "./repository";
 import { EmployeePK, IEmployeeInput, IEmployeeOutput, IUser } from "../data_types/employee";
 import { QueryStrategy } from "../queryStrategy";
@@ -17,9 +17,7 @@ const EMPLOYEE_QUERY_STRATEGY: QueryStrategy = {
             positionFilter: sql`
                 AND empl_role = ?`,
             employeeSurnameFilter: sql`
-                AND empl_surname LIKE '%' || ? || '%'`,
-            loginFilter: sql`
-                AND login = ?`, // for employees requesting information about themselves
+                AND lower(empl_surname) LIKE '%' || lower(?) || '%'`,
         },
         sortingStrategy: {
             employeeSurnameOrder: {

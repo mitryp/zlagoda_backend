@@ -1,4 +1,4 @@
-import { Database, OPEN_READONLY } from "sqlite3";
+import * as sqlite from "better-sqlite3";
 import { strictEqual } from "assert";
 
 /**
@@ -8,42 +8,39 @@ export class DbHelpers {
     /**
      * Establishes a new database connection, logging success or failure.
      * @param {string} successMsg - Message to log in console on success.
-     * @param {number} sqliteFlags - Flags to open the table with (opens in readonly mode by default).
-     * @returns {Promise<Database>} Promise that resolves with the newly established connection.
+     * @param {boolean} write - Whether to open only for reading, or writing too.
+     * @returns {Promise<sqlite.Database>} Promise that resolves with the newly established connection.
      */
-    static async openDB(successMsg: string = "Establish database connection", sqliteFlags: number = OPEN_READONLY): Promise<Database> {
-        return new Promise<Database>((resolve, reject) => {
-            const db = new Database(process.env.DB_PATH, sqliteFlags, (err) => {
-                if (err) {
-                    console.error(err);
-                    reject(err);
-                } else {
-                    console.log(successMsg);
-                    this.run(db, "PRAGMA foreign_keys = ON", "Enable foreign keys for new connection") // foreign keys have to be explicitly enabled for each new connection to sqlite database
-                        .then(() => resolve(db));
-                }
-            });
-        });
+    static async openDB(successMsg: string = "Establish database connection", write: boolean = false): Promise<sqlite.Database> {
+        try {
+            const db = new sqlite(process.env.DB_PATH, { readonly: !write });
+            db.prepare("PRAGMA foreign_keys = ON").run();
+            // register custom lower and upper functions to add case support for unicode (particularly cyrillic), because sqlite does not provide that by default
+            db.function("lower", (str: string) => { return str.toLocaleLowerCase(); });
+            db.function("upper", (str: string) => { return str.toLocaleLowerCase(); });
+            console.log(successMsg);
+            return db;
+        }
+        catch (err) {
+            console.error(err);
+            throw err; // this method only logs that the error did, in fact, occur
+        }
     }
 
     /**
      * Closes an existing database connection, logging success or failure.
-     * @param {Database} db - Database connection to be closed.
+     * @param {sqlite.Database} db - Database connection to be closed.
      * @param {string} successMsg - Message to log in console on success.
-     * @returns {Promise<void>} Void Promise.
      */
-    static async closeDB(db: Database, successMsg: string = "Close database connection"): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            db.close((err) => {
-                if (err) {
-                    console.error(err);
-                    reject(err);
-                } else {
-                    console.log(successMsg);
-                    resolve(); // no useful information to resolve with on success
-                }
-            });
-        });
+    static async closeDB(db: sqlite.Database, successMsg: string = "Close database connection"): Promise<void> {
+        try {
+            db.close();
+            console.log(successMsg);
+        }
+        catch (err) {
+            console.error(err);
+            throw err; // this method only logs that the error did, in fact, occur
+        }
     }
 
     /**
@@ -54,62 +51,55 @@ export class DbHelpers {
      * @param {Array} params - What question marks will be substituted with in a query (protecting from SQL injection).
      * @returns {Promise<void>} Void Promise.
      */
-    static async run(db: Database, query: string, successMsg: string, params: unknown[] = []): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            db.run(query, params, (err) => {
-                if (err) {
-                    console.error(err);
-                    reject(err);
-                } else {
-                    console.log(successMsg);
-                    resolve();
-                }
-            });
-        });
+    static async run(db: sqlite.Database, query: string, successMsg: string, params: unknown[] = []): Promise<void> {
+        try {
+            db.prepare(query).run(params);
+            console.log(successMsg);
+        }
+        catch (err) {
+            console.error(err);
+            throw err; // this method only logs that the error did, in fact, occur
+        }
     }
 
     /**
      * Runs a SELECT query.
-     * @param {Database} db - Connection to the database.
+     * @param {sqlite.Database} db - Connection to the database.
      * @param {string} query - Query.
      * @param {string} successMsg - Message to log in console on success.
      * @param {Array} params - What question marks will be substituted with in a query (protecting from SQL injection).
-     * @returns {Promise<Array<Object>>} Promise that resolves with the resulting array of rows.
+     * @returns {Promise<Object[]>} Promise that resolves with the resulting array of rows.
      */
-    static async select(db: Database, query: string, successMsg: string, params: unknown[] = []): Promise<Object[]> {
-        return new Promise<Object[]>((resolve, reject) => {
-            db.all(query, params, (err, rows) => {
-                if (err) {
-                    console.error(err);
-                    reject(err);
-                } else {
-                    console.log(successMsg);
-                    resolve(rows);
-                }
-            });
-        });
+    static async select(db: sqlite.Database, query: string, successMsg: string, params: unknown[] = []): Promise<Object[]> {
+        try {
+            const res = db.prepare(query).all(params);
+            console.log(successMsg);
+            return res;
+        }
+        catch (err) {
+            console.error(err);
+            throw err; // this method only logs that the error did, in fact, occur
+        }
     }
 
     /**
      * Runs a SELECT query, returns first match or undefined instead of an array.
-     * @param {Database} db - Connection to the database.
+     * @param {sqlite.Database} db - Connection to the database.
      * @param {string} query - Query.
      * @param {string} successMsg - Message to log in console on success.
      * @param {Array} params - What question marks will be substituted with in a query (protecting from SQL injection).
      * @returns {Promise<Object | null>} Promise that resolves with the resulting row, or null if none are found.
      */
-    static async selectFirst(db: Database, query: string, successMsg: string, params: unknown[] = []): Promise<Object | null> {
-        return new Promise<Object | null>((resolve, reject) => {
-            db.get(query, params, (err, row) => {
-                if (err) {
-                    console.error(err);
-                    reject(err);
-                } else {
-                    console.log(successMsg);
-                    resolve(row ? row : null); // replace undefined with null for clarity
-                }
-            });
-        });
+    static async selectFirst(db: sqlite.Database, query: string, successMsg: string, params: unknown[] = []): Promise<Object | null> {
+        try {
+            const res = db.prepare(query).get(params);
+            console.log(successMsg);
+            return res;
+        }
+        catch (err) {
+            console.error(err);
+            throw err; // this method only logs that the error did, in fact, occur
+        }
     }
 }
 

@@ -1,4 +1,4 @@
-import { Database } from "sqlite3";
+import { Database } from "better-sqlite3";
 import { FilterParam, Pagination, StaticRepository } from "./repository";
 import { IReceiptInput, IReceiptOutput, ISaleInput, ISaleOutput, ReceiptPK } from "../data_types/receipt";
 import { StaticQueryStrategy } from "../queryStrategy";
@@ -77,12 +77,10 @@ export class ReceiptRepository extends StaticRepository<ReceiptPK, IReceiptInput
 
     public async select(filters: FilterParam[] = [], order: OrderParam = null, pagination: Pagination = { limit: 0, offset: 0 }): Promise<{ rows: IReceiptOutput[]; baseLength: number }> {
         let dtos = await super.select(filters, order, pagination);
-        dtos.rows = await Promise.all(
-            dtos.rows.map(async (row: IReceiptOutput): Promise<IReceiptOutput> => {
-                row.sales = await this.selectSales(row.receiptId);
-                return row;
-            })
-        );
+        dtos.rows = await Promise.all(dtos.rows.map(async (row: IReceiptOutput): Promise<IReceiptOutput> => {
+            row.sales = await this.selectSales(row.receiptId);
+            return row;
+        }));
         return dtos;
     }
 
@@ -104,11 +102,11 @@ export class ReceiptRepository extends StaticRepository<ReceiptPK, IReceiptInput
         }
         const pk = await super.insert(dto);
         for (const sale of dto.sales) {
-            await this.insertSale(pk, sale);
+            this.insertSale(pk, sale);
             // update store product remaining quantity
             let storeProduct = await this.storeProductRepo.selectByPK(sale.storeProductId);
             storeProduct.quantity -= sale.quantity; // if this results in a negative number, there will be an attempt to update to it, which will cause a constraint error; this is the intended way of handling the situation, because constraint error will cause the entire transaction to be rolled back and result in an error response
-            await this.storeProductRepo.update(sale.storeProductId, storeProduct);
+            this.storeProductRepo.update(sale.storeProductId, storeProduct);
         }
         return pk;
     }
@@ -130,8 +128,8 @@ export class ReceiptRepository extends StaticRepository<ReceiptPK, IReceiptInput
     }
 
     private async insertSale(pk: ReceiptPK, sale: ISaleInput): Promise<void> {
-        const price = (await this.storeProductRepo.selectByPK(sale.storeProductId)).price; // fetching price at the moment of insertion
-        await this.specializedCommand("saleInsertQueryStrategy", [pk, sale.storeProductId, sale.quantity, price]);
+        const storeProduct = await this.storeProductRepo.selectByPK(sale.storeProductId);
+        this.specializedCommand("saleInsertQueryStrategy", [pk, sale.storeProductId, sale.quantity, storeProduct ? storeProduct.price : null]); // if the key was invalid and the product ends up being null, the exception should be thrown by constraints
     }
 
     protected castToOutput(row: Object): IReceiptOutput {
@@ -142,11 +140,13 @@ export class ReceiptRepository extends StaticRepository<ReceiptPK, IReceiptInput
             tax: row["vat"],
             discount: row["percent"],
             clientId: row["card_number"],
-            clientName: row["card_number"] ? {
-                firstName: row["cust_name"],
-                middleName: row["cust_patronymic"],
-                lastName: row["cust_surname"],
-            } : null,
+            clientName: row["card_number"]
+                ? {
+                      firstName: row["cust_name"],
+                      middleName: row["cust_patronymic"],
+                      lastName: row["cust_surname"],
+                  }
+                : null,
             employeeId: row["id_employee"],
             employeeName: {
                 firstName: row["empl_name"],

@@ -1,6 +1,5 @@
 import * as dotenv from "dotenv";
 dotenv.config();
-import { OPEN_READWRITE } from "sqlite3";
 import { initDbIfNotExists } from "./model/dataSchema";
 import { DbHelpers } from "./model/dbHelpers";
 import { CategoryRepository } from "./model/repositories/categoryRepository";
@@ -17,7 +16,7 @@ import { StoreProductRepository } from "./model/repositories/storeProductReposit
  */
 async function generate(): Promise<void> {
     await initDbIfNotExists();
-    const db = await DbHelpers.openDB("Opened db for mock data generation", OPEN_READWRITE);
+    const db = await DbHelpers.openDB("Opened db for mock data generation", true);
     const categoryRepo = new CategoryRepository(db);
     const productRepo = new ProductRepository(db);
     const storeProductRepo = new StoreProductRepository(db);

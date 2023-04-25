@@ -1,6 +1,4 @@
-import { OPEN_CREATE, OPEN_READWRITE } from "sqlite3";
 import * as fs from "fs";
-import * as dotenv from "dotenv";
 
 import { DbHelpers, sql } from "./dbHelpers";
 import { IEmployeeInput } from "./data_types/employee";
@@ -9,7 +7,7 @@ import { EmployeeRepository } from "./repositories/employeeRepository";
 
 async function generateDb(): Promise<void> {
     console.log("Generating database schema");
-    const db = await DbHelpers.openDB("Open database connection", OPEN_READWRITE | OPEN_CREATE);
+    const db = await DbHelpers.openDB("Open database connection", true);
 
     // Category
     let query = sql`

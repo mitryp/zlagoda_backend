@@ -1,4 +1,4 @@
-import { Database } from "sqlite3";
+import { Database } from "better-sqlite3";
 import { OrderParam, StaticSqlQueryBuilder, SqlQueryBuilder } from "../sqlQueryBuilder";
 import { DbHelpers } from "../dbHelpers";
 import { StaticQueryStrategy, QueryStrategy } from "../queryStrategy";

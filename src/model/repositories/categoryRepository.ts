@@ -1,4 +1,4 @@
-import { Database } from "sqlite3";
+import { Database } from "better-sqlite3";
 import { Repository } from "./repository";
 import { ICategoryInput, ICategoryOutput, CategoryPK } from "../data_types/category";
 import { QueryStrategy } from "../queryStrategy";
@@ -14,8 +14,6 @@ const CATEGORY_QUERY_STRATEGY: QueryStrategy = {
         filteringStrategy: {
             primaryKeyFilter: sql`
                 AND category_number = ?`,
-            categoryNameFilter: sql`
-                AND category_name = ?`,
         },
         sortingStrategy: {
             categoryNameOrder: {

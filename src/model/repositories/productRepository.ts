@@ -1,4 +1,4 @@
-import { Database } from "sqlite3";
+import { Database } from "better-sqlite3";
 import { Repository } from "./repository";
 import { IProductInput, IProductOutput, ProductPK } from "../data_types/product";
 import { QueryStrategy } from "../queryStrategy";
@@ -19,7 +19,7 @@ const PRODUCT_QUERY_STRATEGY: QueryStrategy = {
             categoryIdFilter: sql`
                 AND Product.category_number = ?`,
             productNameFilter: sql`
-                AND product_name LIKE '%' || ? || '%'`,
+                AND lower(product_name) LIKE '%' || lower(?) || '%'`,
         },
         sortingStrategy: {
             productNameOrder: {

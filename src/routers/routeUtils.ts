@@ -1,4 +1,4 @@
-import { Database, OPEN_READONLY, OPEN_READWRITE } from "sqlite3";
+import { Database } from "better-sqlite3";
 import { Router, Request, Response } from "express";
 import { DbHelpers } from "../model/dbHelpers";
 import { dbViolation, internalError, notFound, success } from "../common/responses";
@@ -8,7 +8,7 @@ import { OrderParam } from "../model/sqlQueryBuilder";
 
 async function tryOpenDbForEndpoint(res: Response, write: boolean = false): Promise<Database> {
     try {
-        const db = await DbHelpers.openDB("Opened database connection", write ? OPEN_READWRITE : OPEN_READONLY);
+        const db = await DbHelpers.openDB("Opened database connection", write);
         await DbHelpers.run(db, "BEGIN TRANSACTION", "Begun endpoint transaction");
         return db;
     } catch {

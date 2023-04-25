@@ -1,4 +1,4 @@
-import { Database } from "sqlite3";
+import { Database } from "better-sqlite3";
 import { Repository } from "./repository";
 import { IStoreProductInput, IStoreProductOutput, StoreProductPK } from "../data_types/storeProduct";
 import { QueryStrategy } from "../queryStrategy";
@@ -20,8 +20,6 @@ const STORE_PRODUCT_QUERY_STRATEGY: QueryStrategy = {
                 AND UPC = ?`,
             isPromFilter: sql`
                 AND promotional_product = ?`,
-            productNameFilter: sql`
-                AND product_name LIKE '%' || ? || '%'`,
         },
         sortingStrategy: {
             productNameOrder: {
