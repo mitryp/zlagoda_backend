@@ -147,7 +147,9 @@ async function generateDb(): Promise<void> {
                 * (100 - percent) / 100,
                 vat = sum_total / 5
             WHERE receipt_number = NEW.receipt_number;
-        END;
+        END`;
+    await DbHelpers.run(db, query, "Attach insert trigger to Sale for maintenance of Receipt's materialized derivative attributes");
+    query = sql`
         CREATE TRIGGER IF NOT EXISTS Sale_Update
         AFTER UPDATE ON Sale
         BEGIN
@@ -156,7 +158,9 @@ async function generateDb(): Promise<void> {
                 * (100 - percent) / 100,
                 vat = sum_total / 5
             WHERE receipt_number = NEW.receipt_number OR receipt_number = OLD.receipt_number;
-        END;
+        END`;
+    await DbHelpers.run(db, query, "Attach update trigger to Sale for maintenance of Receipt's materialized derivative attributes");
+    query = sql`
         CREATE TRIGGER IF NOT EXISTS Sale_Delete
         AFTER DELETE ON Sale
         BEGIN
@@ -166,7 +170,7 @@ async function generateDb(): Promise<void> {
                 vat = sum_total / 5
             WHERE receipt_number = OLD.receipt_number;
         END`;
-    await DbHelpers.run(db, query, "Attach triggers to Sale for maintenance of Receipt's materialized derivative attributes");
+    await DbHelpers.run(db, query, "Attach delete trigger to Sale for maintenance of Receipt's materialized derivative attributes");
 
     // a placeholder default account for initial setup of the system, after which it is heavily encouraged to either delete this manager or configure proper values
     // this is similar to the approach taken with default admin credentials on routers
