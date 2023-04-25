@@ -27,7 +27,7 @@ const RECEIPT_QUERY_STRATEGY: StaticQueryStrategy = {
             dateMaxFilter: sql`
                 AND print_date <= ?`,
             employeeIdFilter: sql`
-                AND Receipt.id_employee`,
+                AND Receipt.id_employee = ?`,
         },
         sortingStrategy: {
             dateOrder: {
