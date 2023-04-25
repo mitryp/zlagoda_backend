@@ -18,7 +18,8 @@ export function storeProductRouter(auth: Authorizer): Router {
     setupDbRoute(router, "get", "", auth.requirePosition(), false, async (req, res, db) => {
         const repo = new StoreProductRepository(db);
         const { order, pagination } = parseCollectionQueryParams(req.query);
-        const filters = parseExpectedFilters(["upcFilter", "isPromFilter"], req.query);
+        let filters = parseExpectedFilters(["upcFilter"], req.query);
+        if (req.query["isPromFilter"]) filters.push({key: "isPromFilter", param: req.query["isPromFilter"] === "true" ? 1 : 0}); // manually parse true/false filter because automatically it parses as a string, which is problematic
         const output = await repo.select(filters, order, pagination);
         res.setHeader("X-Total-Count", output.baseLength); // second element in the resulting tuple is a total length of the paginated results array, which is sent via header
         return output.rows; // will be sent via body
