@@ -8,6 +8,9 @@ import { ProductRepository } from "./model/repositories/productRepository";
 import { EmployeeRepository } from "./model/repositories/employeeRepository";
 import { IEmployeeInput } from "./model/data_types/employee";
 import { hashPassword } from "./services/auth/auth_utils";
+import { ReceiptRepository } from "./model/repositories/receiptRepository";
+import { ClientRepository } from "./model/repositories/clientRepository";
+import { StoreProductRepository } from "./model/repositories/storeProductRepository";
 
 /**
  * Inserts example data into the database.
@@ -15,31 +18,45 @@ import { hashPassword } from "./services/auth/auth_utils";
 async function generate(): Promise<void> {
     await initDbIfNotExists();
     const db = await DbHelpers.openDB("Opened db for mock data generation", OPEN_READWRITE);
-
     const categoryRepo = new CategoryRepository(db);
-    const dairyPk = await categoryRepo.insert({ categoryName: "Dairy" });
-    const vegetablesPk = await categoryRepo.insert({ categoryName: "Vegetables" });
-
     const productRepo = new ProductRepository(db);
+    const storeProductRepo = new StoreProductRepository(db);
+    const employeeRepo = new EmployeeRepository(db);
+    const clientRepo = new ClientRepository(db);
+    const receiptRepo = new ReceiptRepository(db);
+
+    const dairyPk = await categoryRepo.insert({ categoryName: "Молочна продукція" });
+
     await productRepo.insert({
-        upc: "523555",
+        upc: "123123123333",
         productName: "Молоко",
         manufacturer: 'ТОВ "Корова"',
         specs: "-1% жиру",
         categoryId: dairyPk,
     });
     await productRepo.insert({
-        upc: "123678",
-        productName: "Картопля",
-        manufacturer: "Ireland and Co.",
-        specs: "Сира",
-        categoryId: vegetablesPk,
+        upc: "333321321321",
+        productName: "Морозиво",
+        manufacturer: 'ТОВ "Корова"',
+        specs: "-7% жиру",
+        categoryId: dairyPk,
     });
 
-    const employeeRepo = new EmployeeRepository(db);
+    const key1 = await storeProductRepo.insert({
+        baseStoreProductId: null,
+        upc: "123123123333",
+        price: 15555,
+        quantity: 1515,
+    });
+    const key2 = await storeProductRepo.insert({
+        baseStoreProductId: null,
+        upc: "333321321321",
+        price: 50555,
+        quantity: 300,
+    });
 
     await employeeRepo.insert({
-        employeeId: "01927830912",
+        employeeId: "0192783091",
         employeeName: {
             firstName: "Петро",
             middleName: null,
@@ -57,6 +74,48 @@ async function generate(): Promise<void> {
         },
         login: "cashier",
         password: await hashPassword("cashier"),
+    });
+
+    await clientRepo.insert({
+        clientId: "1231231233333",
+        clientName: {
+            firstName: "Степан",
+            middleName: "",
+            lastName: "Бандера"
+        },
+        phone: "+939393393939",
+        discount: 15,
+        address: {
+            city: "Місто",
+            street: "Вулиця",
+            index: "Індекс"
+        }
+    });
+
+    await receiptRepo.insert({
+        clientId: null,
+        employeeId: "0192783091",
+        sales: [
+            {
+                storeProductId: key1,
+                quantity: 15,
+            },
+            {
+                storeProductId: key2,
+                quantity: 30,
+            },
+        ],
+    });
+
+    await receiptRepo.insert({
+        clientId: "1231231233333",
+        employeeId: "0192783091",
+        sales: [
+            {
+                storeProductId: key1,
+                quantity: 37,
+            },
+        ],
     });
 
     await DbHelpers.closeDB(db, "Closed db after mock data generation");
