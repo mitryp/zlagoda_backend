@@ -87,7 +87,7 @@ export abstract class StaticRepository<PK, InputDTO, OutputDTO = InputDTO> {
     }
 
     public async delete(primaryKey: PK): Promise<void> {
-        return DbHelpers.run(this.db, this.staticQueryBuilder.buildDelete(), "Deleted row", [primaryKey]);
+        await DbHelpers.run(this.db, this.staticQueryBuilder.buildDelete(), "Deleted row", [primaryKey]);
     }
 
     /**
@@ -102,6 +102,10 @@ export abstract class StaticRepository<PK, InputDTO, OutputDTO = InputDTO> {
      */
     protected async specializedSelectFirst(key: string, params: unknown[] = []): Promise<Object | null> {
         return DbHelpers.selectFirst(this.db, this.staticQueryBuilder.buildCustomQuery(key), "Selected one specialized row from DB, the key of select query is " + key, params);
+    }
+
+    protected async specializedCommand(key: string, params: unknown[] = []): Promise<void> {
+        await DbHelpers.run(this.db, this.staticQueryBuilder.buildCustomQuery(key), "Ran specialized command with key " + key, params);
     }
 
     /**

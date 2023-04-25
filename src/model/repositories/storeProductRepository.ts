@@ -9,8 +9,9 @@ import { ProductPK } from "../data_types/product";
 const STORE_PRODUCT_QUERY_STRATEGY: QueryStrategy = {
     selectStrategy: {
         baseClause: sql`
-            SELECT id_store_product, id_store_product_base, Store_Product.UPC AS UPC, selling_price, products_number, product_name, manufacturer 
-            FROM Store_Product INNER JOIN Product ON Store_Product.UPC = Product.UPC
+            SELECT id_store_product, id_store_product_base, Store_Product.UPC, selling_price, products_number, product_name, manufacturer 
+            FROM Store_Product
+                INNER JOIN Product ON Store_Product.UPC = Product.UPC
             WHERE TRUE`,
         filteringStrategy: {
             primaryKeyFilter: sql`

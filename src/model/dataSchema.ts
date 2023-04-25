@@ -16,8 +16,7 @@ async function generateDb(): Promise<void> {
         CREATE TABLE IF NOT EXISTS Category (
             category_number INTEGER PRIMARY KEY,
             category_name TEXT UNIQUE NOT NULL CHECK (LENGTH(category_name) <= 50)
-        )
-    `; // category_name is made UNIQUE because users should be able to deterministically identify a category from its name, as the number is internal to the database and not shown
+        )`; // category_name is made UNIQUE because users should be able to deterministically identify a category from its name, as the number is internal to the database and not shown
     await DbHelpers.run(db, query, "Create table Category");
 
     // Product
@@ -32,8 +31,7 @@ async function generateDb(): Promise<void> {
                 REFERENCES Category (category_number)
                 ON UPDATE CASCADE
                 ON DELETE RESTRICT
-        ) WITHOUT ROWID
-    `;
+        ) WITHOUT ROWID`;
     await DbHelpers.run(db, query, "Create table Product");
 
     // Store_Product
@@ -54,8 +52,7 @@ async function generateDb(): Promise<void> {
                 REFERENCES Product (UPC)
                 ON UPDATE CASCADE
                 ON DELETE RESTRICT
-        )
-    `;
+        )`;
     await DbHelpers.run(db, query, "Create table Store_Product");
 
     // Employee
@@ -78,8 +75,7 @@ async function generateDb(): Promise<void> {
             CHECK (
                 date(date_of_start, 'unixepoch') >= date(date_of_birth, 'unixepoch', '+18 years')
             )
-        ) WITHOUT ROWID
-    `;
+        ) WITHOUT ROWID`;
     await DbHelpers.run(db, query, "Create table Employee");
 
     // Customer_Card
@@ -93,22 +89,24 @@ async function generateDb(): Promise<void> {
             city TEXT CHECK (LENGTH(city) <= 50),
             street TEXT CHECK (LENGTH(street) <= 50),
             zip_code TEXT CHECK (LENGTH(zip_code) <= 9),
-            percent INTEGER NOT NULL CHECK (percent >= 0),
+            percent INTEGER NOT NULL CHECK (percent BETWEEN 0 AND 100),
             CHECK (
                 (city IS NULL AND street IS NULL AND zip_code IS NULL)
                 OR (city IS NOT NULL AND street IS NOT NULL AND zip_code IS NOT NULL)
             )
-        ) WITHOUT ROWID
-    `;
+        ) WITHOUT ROWID`;
     await DbHelpers.run(db, query, "Create table Customer_Card");
 
     // Receipt (renamed from Check because Check causes a syntax error in SQLite)
     query = sql`
         CREATE TABLE IF NOT EXISTS Receipt (
-            receipt_number TEXT PRIMARY KEY CHECK (LENGTH(receipt_number) <= 10),
+            receipt_number INTEGER PRIMARY KEY,
             id_employee TEXT NOT NULL,
             card_number TEXT,
             print_date INTEGER NOT NULL,
+            sum_total INTEGER DEFAULT 0 NOT NULL CHECK (sum_total >= 0),
+            vat INTEGER DEFAULT 0 NOT NULL CHECK (vat >= 0),
+            percent INTEGER NOT NULL CHECK (percent BETWEEN 0 AND 100),
             FOREIGN KEY (id_employee)
                 REFERENCES Employee (id_employee)
                 ON UPDATE CASCADE
@@ -117,8 +115,7 @@ async function generateDb(): Promise<void> {
                 REFERENCES Customer_Card (card_number)
                 ON UPDATE CASCADE
                 ON DELETE RESTRICT
-        ) WITHOUT ROWID
-    `;
+        )`; // percent was added to record the client card's (if any) current discount, as the discount may change; without a card, it is simply expected to be 0
     await DbHelpers.run(db, query, "Create table Receipt");
 
     // Sale
@@ -140,6 +137,38 @@ async function generateDb(): Promise<void> {
         ) WITHOUT ROWID
     `;
     await DbHelpers.run(db, query, "Create table Sale");
+
+    // triggers that implement the derivative nature of sum_total and vat in Receipt
+    // worthy of note is that only the insert trigger is really meaningful, but all three are implemented for theoretical completeness 
+    query = sql`
+        CREATE TRIGGER IF NOT EXISTS Sale_Insert
+        AFTER INSERT ON Sale
+        BEGIN
+            UPDATE Receipt
+            SET sum_total = (SELECT SUM(selling_price * product_number) FROM Sale WHERE receipt_number = Receipt.receipt_number)
+                * (100 - percent) / 100,
+                vat = sum_total / 5
+            WHERE receipt_number = NEW.receipt_number;
+        END;
+        CREATE TRIGGER IF NOT EXISTS Sale_Update
+        AFTER UPDATE ON Sale
+        BEGIN
+            UPDATE Receipt
+            SET sum_total = (SELECT SUM(selling_price * product_number) FROM Sale WHERE receipt_number = Receipt.receipt_number)
+                * (100 - percent) / 100,
+                vat = sum_total / 5
+            WHERE receipt_number = NEW.receipt_number OR receipt_number = OLD.receipt_number;
+        END;
+        CREATE TRIGGER IF NOT EXISTS Sale_Delete
+        AFTER DELETE ON Sale
+        BEGIN
+            UPDATE Receipt
+            SET sum_total = (SELECT SUM(selling_price * product_number) FROM Sale WHERE receipt_number = Receipt.receipt_number)
+                * (100 - percent) / 100,
+                vat = sum_total / 5
+            WHERE receipt_number = OLD.receipt_number;
+        END`;
+    await DbHelpers.run(db, query, "Attach triggers to Sale for maintenance of Receipt's materialized derivative attributes");
 
     // a placeholder default account for initial setup of the system, after which it is heavily encouraged to either delete this manager or configure proper values
     // this is similar to the approach taken with default admin credentials on routers

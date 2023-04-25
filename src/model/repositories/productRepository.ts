@@ -10,7 +10,8 @@ const PRODUCT_QUERY_STRATEGY: QueryStrategy = {
     selectStrategy: {
         baseClause: sql`
             SELECT UPC, Product.category_number, category_name, product_name, manufacturer, characteristics 
-            FROM Product INNER JOIN Category ON Product.category_number = Category.category_number
+            FROM Product
+                INNER JOIN Category ON Product.category_number = Category.category_number
             WHERE TRUE`,
         filteringStrategy: {
             primaryKeyFilter: sql`
