@@ -1,4 +1,4 @@
-import { Database } from "better-sqlite3";
+import { Database, SqliteError } from "better-sqlite3";
 import { Router, Request, Response } from "express";
 import { DbHelpers } from "../model/dbHelpers";
 import { dbViolation, internalError, notFound, success } from "../common/responses";
@@ -39,11 +39,14 @@ export function setupDbRoute<T>(router: Router, method: RequestMethod, route: st
             if (res.headersSent) return; // if failure response was already sent from closing
             if (output === null) notFound(res); // even if handler's output type is void, value of the variable will be "undefined": "null" here represents absence of a valid result where there should be one, like when selecting a single item from a repository}
             else success(res, output); // send result (might even be void, depending on the handler)
-        } catch (err) {
+        } catch (e) {
             await tryCloseDbForEndpoint(db, res, false); // rolls back the failed transaction, closes connection
             if (res.headersSent) return;
-            if (err.message.startsWith("SQLITE_CONSTRAINT")) dbViolation(res);
-            else if (err.message.startsWith("CORPORATE_INTEGRITY_CONSTRAINT")) dbViolation(res, err.cause);
+            if (e instanceof SqliteError) {
+                const err = e;
+                if (err.code.startsWith("SQLITE_CONSTRAINT")) dbViolation(res, "Операція не може бути безпечно виконана з підтримкою валідності зв'язків з іншими сутностями");
+                else if (err.code.startsWith("CORPORATE_INTEGRITY_CONSTRAINT")) dbViolation(res, err.message as string);
+            }
             else internalError(res);
         }
     };

@@ -1,4 +1,4 @@
-import { Database } from "better-sqlite3";
+import { Database, SqliteError } from "better-sqlite3";
 import { Repository } from "./repository";
 import { IPromotionalStoreProductInsert, IPromotionalStoreProductPatch, IStoreProductInput, IStoreProductOutput, StoreProductPK } from "../data_types/storeProduct";
 import { QueryStrategy } from "../queryStrategy";
@@ -82,14 +82,14 @@ export class StoreProductRepository extends Repository<StoreProductPK, IStorePro
         dto.baseStoreProductId = null; // again, this is considered non-promotional
         const storeProduct = await this.selectByPK(pk);
         if (!storeProduct) return null;
-        if (storeProduct.baseStoreProductId !== null) throw Error("CORPORATE_INTEGRITY_CONSTRAINT", { cause: "Спроба оновити акційний товар у магазині неакційним методом" });
-        return await super.update(pk, dto);
+        if (storeProduct.baseStoreProductId !== null) throw new SqliteError("Спроба оновити акційний товар у магазині неакційним методом", "CORPORATE_INTEGRITY_CONSTRAINT");
+        return super.update(pk, dto);
     }
 
     public async delete(pk: StoreProductPK): Promise<void> {
         const storeProduct = await this.selectByPK(pk);
         if (!storeProduct) return;
-        if (storeProduct.baseStoreProductId !== null) throw Error("CORPORATE_INTEGRITY_CONSTRAINT", { cause: "Спроба видалити акційний товар у магазині неакційним методом" });
+        if (storeProduct.baseStoreProductId !== null) throw new SqliteError("Спроба видалити акційний товар у магазині неакційним методом", "CORPORATE_INTEGRITY_CONSTRAINT");
     }
 
     // updateAndReturn also automatically works
@@ -100,7 +100,7 @@ export class StoreProductRepository extends Repository<StoreProductPK, IStorePro
     public async insertPromotional(basePK: StoreProductPK, dto: IPromotionalStoreProductInsert): Promise<StoreProductPK> {
         let base = await this.selectByPK(basePK);
         if (!base) return null;
-        if (base.baseStoreProductId !== null) throw Error("CORPORATE_INTEGRITY_CONSTRAINT", { cause: "Спроба створити акційний товар на базі іншого акційного товару" });
+        if (base.baseStoreProductId !== null) throw new SqliteError("Спроба створити акційний товар на базі іншого акційного товару", "CORPORATE_INTEGRITY_CONSTRAINT");
         const storeProductDto: IStoreProductInput = {
             baseStoreProductId: basePK, // if this is invalid, a proper error will be generated upon trying to insert / update the object
             upc: base.upc,
@@ -110,7 +110,7 @@ export class StoreProductRepository extends Repository<StoreProductPK, IStorePro
         let prom = await this.selectPromotionalFor(storeProductDto.upc); // fetch the current promotional product for the product with incoming UPC (if there is one)
         let pk: StoreProductPK;
         if (prom) {
-            if (prom.quantity !== 0) throw Error("CORPORATE_INTEGRITY_CONSTRAINT", { cause: "Спроба оголосити нову акцію, коли в попередній ще не закінчилися товари" });
+            if (prom.quantity !== 0) throw new SqliteError("Спроба оголосити нову акцію, коли в попередній ще не закінчилися товари", "CORPORATE_INTEGRITY_CONSTRAINT");
             pk = await super.update(prom.storeProductId, storeProductDto); // since there is at most one promotional product and it cannot be deleted due to integrity limitations, it is updated with new values instead
         } else pk = await super.insert(storeProductDto); // plain old insert
         base.quantity -= dto.quantity; // creating a promotional product is not meant to affect the total quantity of the product in the warehouse, so subtract from base product's
@@ -177,3 +177,4 @@ export class StoreProductRepository extends Repository<StoreProductPK, IStorePro
         ]);
     }
 }
+
