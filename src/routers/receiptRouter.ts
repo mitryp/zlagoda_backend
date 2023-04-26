@@ -5,6 +5,7 @@ import { ReceiptRepository } from "../model/repositories/receiptRepository";
 import { authDataOf } from "../services/auth/auth_utils";
 import { AuthenticationService } from "../services/auth/authenticationService";
 import { IReceiptInput } from "../model/data_types/receipt";
+import { forbidden } from "../common/responses";
 
 export function receiptRouter(authService: AuthenticationService, auth: Authorizer): Router {
     const router = Router();
@@ -21,7 +22,8 @@ export function receiptRouter(authService: AuthenticationService, auth: Authoriz
         return output.rows; // will be sent via body
     });
 
-    setupDbRoute(router, "get", "", auth.requirePosition(), false, async (req, res, db) => {
+    // only manager is authorized to see all receipts
+    setupDbRoute(router, "get", "", auth.requirePosition("manager"), false, async (req, res, db) => {
         const repo = new ReceiptRepository(db);
         const { order, pagination } = parseCollectionQueryParams(req.query);
         const filters = parseExpectedFilters(["dateMinFilter", "dateMaxFilter", "employeeIdFilter"], req.query);
@@ -40,9 +42,15 @@ export function receiptRouter(authService: AuthenticationService, auth: Authoriz
         return repo.insertAndReturn(dto);
     });
 
-    setupDbRoute(router, "get", "/:id", auth.requirePosition(), false, async (req, _res, db) => {
+    // here the check is more complex: technically both manager and cashier can make this get request, and validation for cashier (whether it is a receipt written by them) is required separately
+    setupDbRoute(router, "get", "/:id", auth.requirePosition(), false, async (req, res, db) => {
         const repo = new ReceiptRepository(db);
-        return repo.selectByPK(parseInt(req.params.id));
+        const token = authDataOf(req).content; // parse bearer token from auth header
+        const user = await authService.validateToken(token); // get user (employee) who made the request, using their token
+        const receipt = await repo.selectByPK(parseInt(req.params.id));
+        if (!receipt) return null;
+        if (user.role === "cashier" && receipt.employeeId !== user.userId) forbidden(res, "Ви не маєте права переглядати чеки інших касирів");
+        return receipt;
     });
 
     // no put route because receipts are not to be updated

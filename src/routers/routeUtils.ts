@@ -22,6 +22,7 @@ async function tryCloseDbForEndpoint(db: Database, res: Response, commit: boolea
         else await DbHelpers.run(db, "ROLLBACK", "Rolled back failed endpoint transaction");
         await DbHelpers.closeDB(db, "Closed database connection for endpoint");
     } catch (err) {
+        if (res.headersSent) return; // might happen if the handler itself sends a response
         internalError(res, "Failed to close database");
     }
 }
