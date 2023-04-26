@@ -14,7 +14,7 @@ import { StoreProductRepository } from "./storeProductRepository";
 const RECEIPT_QUERY_STRATEGY: StaticQueryStrategy = {
     selectStrategy: {
         baseClause: sql`
-            SELECT receipt_number, print_date, sum_total, vat, Receipt.card_number, cust_name, cust_patronymic, cust_surname, Receipt.id_employee, empl_name, empl_patronymic, empl_surname
+            SELECT receipt_number, print_date, sum_total, vat, Receipt.percent, Receipt.card_number, cust_name, cust_patronymic, cust_surname, Receipt.id_employee, empl_name, empl_patronymic, empl_surname
             FROM Receipt
                 INNER JOIN Employee ON Receipt.id_employee = Employee.id_employee
                 LEFT OUTER JOIN Customer_Card ON Receipt.card_number = Customer_Card.card_number
@@ -95,7 +95,7 @@ export class ReceiptRepository extends StaticRepository<ReceiptPK, IReceiptInput
     // selectByPK relies on selectFirst, which is properly overloaded
 
     public async insert(dto: IReceiptInput): Promise<ReceiptPK> {
-        dto.date = new Date().getTime() / 1000; // timestamp of insertion is queried from current time; since JavaScript's timestamp is in milliseconds, it is also divided by 1000
+        dto.date = Math.floor(new Date().getTime() / 1000); // timestamp of insertion is queried from current time; since JavaScript's timestamp is in milliseconds, it is also divided by 1000
         // set discount, either from an attached client card, or 0% if no client card
         dto.discount = 0;
         if (dto.clientId) {
@@ -138,7 +138,7 @@ export class ReceiptRepository extends StaticRepository<ReceiptPK, IReceiptInput
     protected castToOutput(row: Object): IReceiptOutput {
         return {
             receiptId: row["receipt_number"],
-            date: row["print_total"],
+            date: row["print_date"],
             cost: row["sum_total"],
             tax: row["vat"],
             discount: row["percent"],
