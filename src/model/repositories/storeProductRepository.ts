@@ -90,6 +90,7 @@ export class StoreProductRepository extends Repository<StoreProductPK, IStorePro
         const storeProduct = await this.selectByPK(pk);
         if (!storeProduct) return;
         if (storeProduct.baseStoreProductId !== null) throw new SqliteError("Спроба видалити акційний товар у магазині неакційним методом", "CORPORATE_INTEGRITY_CONSTRAINT");
+        return super.delete(pk);
     }
 
     // updateAndReturn also automatically works
