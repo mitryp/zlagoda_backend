@@ -23,6 +23,7 @@ function applyMiddlewares() {
 
     app.use(
         cors({
+            exposedHeaders: ['X-Total-Count'],
             allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"],
         })
     );
