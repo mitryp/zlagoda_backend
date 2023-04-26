@@ -53,6 +53,20 @@ async function generateDb(): Promise<void> {
         )`;
     await DbHelpers.run(db, query, "Create table Store_Product");
 
+    // Trigger for maintaining <= 2 number of store products related to a product
+    query = sql`
+        CREATE TRIGGER IF NOT EXISTS Store_Product_Insert
+        BEFORE INSERT ON Store_Product
+        BEGIN
+            SELECT CASE
+                WHEN (SELECT COUNT (*) AS num_store_products FROM Store_Product WHERE UPC = NEW.UPC) = 2
+                    THEN RAISE(FAIL, 'CORPORATE_INTEGRITY_CONSTRAINT: Не можна створити більше двох товарів у магазині для одного товару')
+                WHEN NEW.id_store_product_base IS NULL AND (SELECT COUNT (*) AS num_store_products FROM Store_Product WHERE UPC = NEW.UPC) = 1
+                    THEN RAISE(FAIL, 'CORPORATE_INTEGRITY_CONSTRAINT: Не можна створити більше одного неакційного товару в магазині')
+            END;
+        END`;
+    await DbHelpers.run(db, query, "Attach insert trigger to Store_Product for maintenance of count of rows referring to one store product");
+
     // Employee
     query = sql`
         CREATE TABLE IF NOT EXISTS Employee (

@@ -4,7 +4,6 @@ import { setupDbRoute, parseCollectionQueryParams, parseExpectedFilters } from "
 import { StoreProductRepository } from "../model/repositories/storeProductRepository";
 import { IStoreProductInput } from "../model/data_types/storeProduct";
 
-const discountQuotient = parseFloat(process.env.DISCOUNT_QUOTIENT);
 
 export function storeProductRouter(auth: Authorizer): Router {
     const router = Router();
@@ -27,11 +26,7 @@ export function storeProductRouter(auth: Authorizer): Router {
 
     setupDbRoute(router, "post", "", auth.requirePosition("manager"), true, async (req, _res, db) => {
         const repo = new StoreProductRepository(db);
-        let storeProduct = req.body as IStoreProductInput;
-        if (storeProduct.baseStoreProductId !== null) {
-            storeProduct.price = (await repo.selectByPK(storeProduct.baseStoreProductId)).price * discountQuotient; // static discount from base price
-        }
-        return repo.insertAndReturn(req.body);
+        return repo.insertAndReturn(req.body); // insert regular store product
     });
 
     setupDbRoute(router, "get", "/:id", auth.requirePosition(), false, async (req, _res, db) => {
@@ -41,16 +36,27 @@ export function storeProductRouter(auth: Authorizer): Router {
 
     setupDbRoute(router, "put", "/:id", auth.requirePosition("manager"), true, async (req, _res, db) => {
         const repo = new StoreProductRepository(db);
-        let storeProduct = req.body as IStoreProductInput;
-        if (storeProduct.baseStoreProductId !== null && storeProduct.price === null) {
-            storeProduct.price = (await repo.selectByPK(storeProduct.baseStoreProductId)).price * discountQuotient; // TODO do something
-        }
         return repo.updateAndReturn(parseInt(req.params.id), req.body);
     });
 
     setupDbRoute(router, "delete", "/:id", auth.requirePosition("manager"), true, async (req, _res, db) => {
         const repo = new StoreProductRepository(db);
         await repo.delete(parseInt(req.params.id));
+    });
+
+    setupDbRoute(router, "post", "/:id/prom", auth.requirePosition("manager"), true, async (req, _res, db) => {
+        const repo = new StoreProductRepository(db);
+        await repo.insertPromotionalAndReturn(parseInt(req.params.id), req.body);
+    });
+
+    setupDbRoute(router, "patch", "/:id/prom", auth.requirePosition("manager"), true, async (req, _res, db) => {
+        const repo = new StoreProductRepository(db);
+        await repo.patchPromotionalQuantityAndReturn(parseInt(req.params.id), req.body);
+    });
+
+    setupDbRoute(router, "delete", "/:id/prom", auth.requirePosition("manager"), true, async (req, _res, db) => {
+        const repo = new StoreProductRepository(db);
+        await repo.deletePromotional(parseInt(req.params.id));
     });
 
     return router;

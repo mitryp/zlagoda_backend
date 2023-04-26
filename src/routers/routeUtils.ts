@@ -43,6 +43,7 @@ export function setupDbRoute<T>(router: Router, method: RequestMethod, route: st
             await tryCloseDbForEndpoint(db, res, false); // rolls back the failed transaction, closes connection
             if (res.headersSent) return;
             if (err.message.startsWith("SQLITE_CONSTRAINT")) dbViolation(res);
+            else if (err.message.startsWith("CORPORATE_INTEGRITY_CONSTRAINT")) dbViolation(res, err.cause);
             else internalError(res);
         }
     };
@@ -55,6 +56,9 @@ export function setupDbRoute<T>(router: Router, method: RequestMethod, route: st
             break;
         case "put":
             router.put(route, auth, controller);
+            break;
+        case "patch":
+            router.patch(route, auth, controller);
             break;
         case "delete":
             router.delete(route, auth, controller);

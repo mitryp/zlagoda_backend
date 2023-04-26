@@ -42,16 +42,35 @@ async function generate(): Promise<void> {
     });
 
     const key1 = await storeProductRepo.insert({
-        baseStoreProductId: null,
         upc: "123123123333",
         price: 15555,
         quantity: 1515,
     });
     const key2 = await storeProductRepo.insert({
-        baseStoreProductId: null,
         upc: "333321321321",
         price: 50555,
         quantity: 300,
+    });
+    const key3 = await storeProductRepo.insertPromotional(key1, {
+        quantity: 1000
+    });
+    const key4 = await storeProductRepo.insertPromotional(key2, {
+        quantity: 100
+    });
+    await storeProductRepo.deletePromotional(key2);
+    console.log(await storeProductRepo.select());
+    
+    await storeProductRepo.update(key2, {
+        upc: "333321321321",
+        price: 3000,
+        quantity: 150,
+    });
+    await storeProductRepo.patchPromotionalQuantity(key2, {
+        quantity: 0,
+        controlTotalQuantity: false,
+    });
+    await storeProductRepo.insertPromotional(key2, {
+        quantity: 47,
     });
 
     await employeeRepo.insert({
@@ -100,7 +119,7 @@ async function generate(): Promise<void> {
                 quantity: 15,
             },
             {
-                storeProductId: key2,
+                storeProductId: key4,
                 quantity: 30,
             },
         ],
@@ -111,7 +130,7 @@ async function generate(): Promise<void> {
         employeeId: "0192783091",
         sales: [
             {
-                storeProductId: key1,
+                storeProductId: key2,
                 quantity: 37,
             },
         ],

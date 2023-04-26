@@ -4,7 +4,7 @@ import { Database } from "better-sqlite3";
 export type ExpressMiddleware = (req: Request, res: Response, next: NextFunction) => void;
 export type ExpressController = (req: Request, res: Response) => void;
 export type AuthorizationScheme = "Bearer" | "Basic";
-export type RequestMethod = "get" | "post" | "put" | "delete";
+export type RequestMethod = "get" | "post" | "put" | "delete" | "patch";
 /**
  * Abstract asynchronous handler that does the work with the database connection and does not concern itself with acquisition of the connection
  * or error handling or sending the result (just returns the result).
