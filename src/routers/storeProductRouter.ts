@@ -46,12 +46,12 @@ export function storeProductRouter(auth: Authorizer): Router {
 
     setupDbRoute(router, "post", "/:id/prom", auth.requirePosition("manager"), true, async (req, _res, db) => {
         const repo = new StoreProductRepository(db);
-        await repo.insertPromotionalAndReturn(parseInt(req.params.id), req.body);
+        return repo.insertPromotionalAndReturn(parseInt(req.params.id), req.body);
     });
 
     setupDbRoute(router, "patch", "/:id/prom", auth.requirePosition("manager"), true, async (req, _res, db) => {
         const repo = new StoreProductRepository(db);
-        await repo.patchPromotionalQuantityAndReturn(parseInt(req.params.id), req.body);
+        return repo.patchPromotionalQuantityAndReturn(parseInt(req.params.id), req.body);
     });
 
     setupDbRoute(router, "delete", "/:id/prom", auth.requirePosition("manager"), true, async (req, _res, db) => {
