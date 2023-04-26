@@ -9,6 +9,18 @@ import { IReceiptInput } from "../model/data_types/receipt";
 export function receiptRouter(authService: AuthenticationService, auth: Authorizer): Router {
     const router = Router();
 
+    setupDbRoute(router, "get", "/me", auth.requirePosition("cashier"), false, async (req, res, db) => {
+        const token = authDataOf(req).content; // parse bearer token from auth header
+        const user = await authService.validateToken(token); // get user by that token; user has employee id
+        const { order, pagination } = parseCollectionQueryParams(req.query);
+        const filters = parseExpectedFilters(["dateMinFilter", "dateMaxFilter"], req.query);
+        filters.push({ key: "employeeIdFilter", param: user.userId });
+        const repo = new ReceiptRepository(db);
+        const output = await repo.select(filters, order, pagination);
+        res.setHeader("X-Total-Count", output.baseLength); // second element in the resulting tuple is a total length of the paginated results array, which is sent via header
+        return output.rows; // will be sent via body
+    });
+
     setupDbRoute(router, "get", "", auth.requirePosition(), false, async (req, res, db) => {
         const repo = new ReceiptRepository(db);
         const { order, pagination } = parseCollectionQueryParams(req.query);
