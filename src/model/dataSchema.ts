@@ -159,7 +159,8 @@ async function generateDb(): Promise<void> {
             UPDATE Receipt
             SET sum_total = (SELECT SUM(selling_price * product_number) FROM Sale WHERE receipt_number = Receipt.receipt_number)
                 * (100 - percent) / 100,
-                vat = sum_total / 5
+                vat = (SELECT SUM(selling_price * product_number) FROM Sale WHERE receipt_number = Receipt.receipt_number)
+                * (100 - percent) / 500
             WHERE receipt_number = NEW.receipt_number;
         END`;
     await DbHelpers.run(db, query, "Attach insert trigger to Sale for maintenance of Receipt's materialized derivative attributes");
@@ -170,7 +171,8 @@ async function generateDb(): Promise<void> {
             UPDATE Receipt
             SET sum_total = (SELECT SUM(selling_price * product_number) FROM Sale WHERE receipt_number = Receipt.receipt_number)
                 * (100 - percent) / 100,
-                vat = sum_total / 5
+                vat = (SELECT SUM(selling_price * product_number) FROM Sale WHERE receipt_number = Receipt.receipt_number)
+                * (100 - percent) / 500
             WHERE receipt_number = NEW.receipt_number OR receipt_number = OLD.receipt_number;
         END`;
     await DbHelpers.run(db, query, "Attach update trigger to Sale for maintenance of Receipt's materialized derivative attributes");
@@ -181,7 +183,8 @@ async function generateDb(): Promise<void> {
             UPDATE Receipt
             SET sum_total = (SELECT SUM(selling_price * product_number) FROM Sale WHERE receipt_number = Receipt.receipt_number)
                 * (100 - percent) / 100,
-                vat = sum_total / 5
+                vat = (SELECT SUM(selling_price * product_number) FROM Sale WHERE receipt_number = Receipt.receipt_number)
+                * (100 - percent) / 500
             WHERE receipt_number = OLD.receipt_number;
         END`;
     await DbHelpers.run(db, query, "Attach delete trigger to Sale for maintenance of Receipt's materialized derivative attributes");

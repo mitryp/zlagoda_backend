@@ -104,7 +104,7 @@ export class ReceiptRepository extends StaticRepository<ReceiptPK, IReceiptInput
         }
         const pk = await super.insert(dto);
         for (const sale of dto.sales) {
-            this.insertSale(pk, sale);
+            await this.insertSale(pk, sale);
             // update store product remaining quantity
             let storeProduct = await this.storeProductRepo.selectByPK(sale.storeProductId);
             storeProduct.quantity -= sale.quantity; // if this results in a negative number, there will be an attempt to update to it, which will cause a constraint error; this is the intended way of handling the situation, because constraint error will cause the entire transaction to be rolled back and result in an error response
