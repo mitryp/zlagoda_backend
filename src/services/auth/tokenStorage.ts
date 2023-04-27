@@ -41,7 +41,7 @@ export class TokenStorage {
      */
     withdrawTokensOfUser(userId: string): void {
         for (const token in this.storage) {
-            if (this.storage[token][0].userId === userId) this.withdrawToken(token);
+            if (this.storage[token] && this.storage[token][0].userId === userId) this.withdrawToken(token);
         }
     }
 
