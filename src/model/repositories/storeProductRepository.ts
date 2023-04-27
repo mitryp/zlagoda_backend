@@ -127,6 +127,7 @@ export class StoreProductRepository extends Repository<StoreProductPK, IStorePro
     public async patchPromotionalQuantity(basePK: StoreProductPK, dto: IPromotionalStoreProductPatch): Promise<StoreProductPK> {
         let base = await this.selectByPK(basePK);
         if (!base) return null; // a null will be interpreted by the endpoint setup as a 404 NOT FOUND
+        else if (base.baseStoreProductId !== null) throw new SqliteError("При оновленні акційного товару в магазині в якості базового вказаний інший акційний", "CORPORATE_INTEGRITY_CONSTRAINT");
         let promo = await this.selectPromotionalFor(base.upc);
         if (!promo) return null;
         const delta = promo.quantity - dto.quantity;
@@ -148,6 +149,7 @@ export class StoreProductRepository extends Repository<StoreProductPK, IStorePro
     public async deletePromotional(basePK: StoreProductPK): Promise<void> {
         let base = await this.selectByPK(basePK);
         if (!base) return;
+        else if (base.baseStoreProductId !== null) throw new SqliteError("При видаленні акційного товару в магазині в якості базового вказаний інший акційний", "CORPORATE_INTEGRITY_CONSTRAINT");
         const prom = await this.selectPromotionalFor(base.upc);
         if (!prom) return;
         await super.delete(prom.storeProductId);
