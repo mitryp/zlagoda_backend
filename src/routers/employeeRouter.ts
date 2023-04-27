@@ -1,17 +1,17 @@
 import { Router } from "express";
 import { Authorizer } from "../middleware/authoriser";
-import { setupDbRoute, parseCollectionQueryParams, parseExpectedFilters } from "./routeUtils";
+import { setupDbRoute, parseCollectionQueryParams, parseExpectedFilters, fetchUser } from "./routeUtils";
 import { EmployeeRepository } from "../model/repositories/employeeRepository";
 import { authDataOf, hashPassword } from "../services/auth/auth_utils";
 import { AuthenticationService } from "../services/auth/authenticationService";
 import { IEmployeeInput } from "../model/data_types/employee";
+import { forbidden } from "../common/responses";
 
 export function employeeRouter(authService: AuthenticationService, auth: Authorizer): Router {
     const router = Router();
 
     setupDbRoute(router, "get", "/me", auth.requirePosition(), false, async (req, _res, db) => {
-        const token = authDataOf(req).content; // parse bearer token from auth header
-        const user = await authService.validateToken(token); // get user by that token; user has employee id
+        const user = await fetchUser(req, authService);
         const repo = new EmployeeRepository(db);
         return await repo.selectByPK(user.userId); // find employee corresponding to the user
     });
@@ -37,9 +37,14 @@ export function employeeRouter(authService: AuthenticationService, auth: Authori
         return repo.insertAndReturn(employee);
     });
 
-    setupDbRoute(router, "get", "/:id", auth.requirePosition("manager"), false, async (req, _res, db) => {
+    // /me route exists so that the client does not need to send the id, but a get request to own id is also treated as allowed
+    setupDbRoute(router, "get", "/:id", auth.requirePosition(), false, async (req, res, db) => {
         const repo = new EmployeeRepository(db);
-        return repo.selectByPK(req.params.id);
+        const user = await fetchUser(req, authService);
+        const employee = await repo.selectByPK(req.params.id);
+        if (!employee) return null;
+        if (user.role === "cashier" && user.userId !== employee.employeeId) forbidden(res, "Як касир, Ви не маєте права переглядати інформацію інших працівників");
+        return employee;
     });
 
     setupDbRoute(router, "put", "/:id", auth.requirePosition("manager"), true, async (req, _res, db) => {

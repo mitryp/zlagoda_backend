@@ -5,6 +5,9 @@ import { dbViolation, internalError, notFound, success } from "../common/respons
 import { DatabaseRouteHandler, ExpressMiddleware, RequestMethod } from "../common/types";
 import { FilterParam, Pagination } from "../model/repositories/repository";
 import { OrderParam } from "../model/sqlQueryBuilder";
+import { authDataOf } from "../services/auth/auth_utils";
+import { AuthenticationService } from "../services/auth/authenticationService";
+import { IUser } from "../model/data_types/employee";
 
 async function tryOpenDbForEndpoint(res: Response, write: boolean = false): Promise<Database> {
     try {
@@ -95,4 +98,9 @@ export function parseExpectedFilters(expectedFilters: string[], params: Object):
         if (params[filter]) res.push({ key: filter, param: params[filter] });
     });
     return res;
+}
+
+export async function fetchUser(req: Request, authService: AuthenticationService): Promise<IUser> {
+    const token = authDataOf(req).content; // parse bearer token from auth header
+    return authService.validateToken(token); // get user by that token; user has employee id
 }

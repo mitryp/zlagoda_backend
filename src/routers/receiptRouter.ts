@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { Authorizer } from "../middleware/authoriser";
-import { parseExpectedFilters, parseCollectionQueryParams, setupDbRoute } from "./routeUtils";
+import { parseExpectedFilters, parseCollectionQueryParams, setupDbRoute, fetchUser } from "./routeUtils";
 import { ReceiptRepository } from "../model/repositories/receiptRepository";
 import { authDataOf } from "../services/auth/auth_utils";
 import { AuthenticationService } from "../services/auth/authenticationService";
@@ -11,8 +11,7 @@ export function receiptRouter(authService: AuthenticationService, auth: Authoriz
     const router = Router();
 
     setupDbRoute(router, "get", "/me", auth.requirePosition("cashier"), false, async (req, res, db) => {
-        const token = authDataOf(req).content; // parse bearer token from auth header
-        const user = await authService.validateToken(token); // get user by that token; user has employee id
+        const user = await fetchUser(req, authService);
         const { order, pagination } = parseCollectionQueryParams(req.query);
         const filters = parseExpectedFilters(["dateMinFilter", "dateMaxFilter"], req.query);
         filters.push({ key: "employeeIdFilter", param: user.userId });
@@ -44,9 +43,8 @@ export function receiptRouter(authService: AuthenticationService, auth: Authoriz
 
     // here the check is more complex: technically both manager and cashier can make this get request, and validation for cashier (whether it is a receipt written by them) is required separately
     setupDbRoute(router, "get", "/:id", auth.requirePosition(), false, async (req, res, db) => {
+        const user = await fetchUser(req, authService);
         const repo = new ReceiptRepository(db);
-        const token = authDataOf(req).content; // parse bearer token from auth header
-        const user = await authService.validateToken(token); // get user (employee) who made the request, using their token
         const receipt = await repo.selectByPK(parseInt(req.params.id));
         if (!receipt) return null;
         if (user.role === "cashier" && receipt.employeeId !== user.userId) forbidden(res, "Ви не маєте права переглядати чеки інших касирів");
