@@ -65,12 +65,11 @@ const CLIENT_QUERY_STRATEGY: QueryStrategy = {
 
     // Popov group by
     regularCustomersQueryStrategy: sql`
-        SELECT id_employee, empl_surname, empl_name, COUNT(DISTINCT Product.id_product) as num_products_sold
-        FROM Employee
-        INNER JOIN Receipt ON Employee.id_employee = Receipt.id_employee
-        INNER JOIN Sale ON Receipt.receipt_number = Sale.receipt_number
-        GROUP BY id_employee, empl_surname, empl_name
-        HAVING COUNT(DISTINCT Product.id_product) > ?`,
+        SELECT Customer_Card.card_number, cust_surname, cust_name, COUNT(DISTINCT receipt_number) as total_receipts
+        FROM Customer_Card
+        INNER JOIN Receipt ON Customer_Card.card_number = Receipt.card_number
+        GROUP BY Customer_Card.card_number, cust_surname, cust_name
+        HAVING COUNT(DISTINCT receipt_number) >= ?`,
     
 };
 
