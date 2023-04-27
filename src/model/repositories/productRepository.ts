@@ -97,7 +97,7 @@ const PRODUCT_QUERY_STRATEGY: QueryStrategy = {
             AND NOT EXISTS (
                 SELECT *
                 FROM Customer_Card
-                WHERE lower(cust_surname) LIKE '%' || ? || '%'
+                WHERE lower(cust_surname) LIKE '%' || lower(?) || '%'
                 AND card_number NOT IN (
                     SELECT card_number
                     FROM Receipt
