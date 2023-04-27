@@ -25,7 +25,7 @@ export function categoryRouter(auth: Authorizer): Router {
         return repo.insertAndReturn(req.body);
     });
 
-    setupDbRoute(router, "get", "/:id", auth.requirePosition("manager"), false, async (req, _res, db) => {
+    setupDbRoute(router, "get", "/:id", auth.requirePosition(), false, async (req, _res, db) => {
         const repo = new CategoryRepository(db);
         return repo.selectByPK(parseInt(req.params.id));
     });
