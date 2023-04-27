@@ -10,6 +10,12 @@ import { forbidden } from "../common/responses";
 export function receiptRouter(authService: AuthenticationService, auth: Authorizer): Router {
     const router = Router();
 
+    setupDbRoute(router, "get", "/total_sum", auth.requirePosition("manager"), false, async (req, _res, db) => {
+        const repo = new ReceiptRepository(db);
+        const filters = parseExpectedFilters(["employeeIdFilter", "dateMinFilter", "dateMaxFilter"], req.query);
+        return repo.getCount(filters);
+    });
+
     setupDbRoute(router, "get", "/me", auth.requirePosition("cashier"), false, async (req, res, db) => {
         const user = await fetchUser(req, authService);
         const { order, pagination } = parseCollectionQueryParams(req.query);

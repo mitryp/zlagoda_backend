@@ -2,7 +2,7 @@
  * Collection of possible filters.
  */
 type FilteringStrategy = {
-    primaryKeyFilter: string;
+    primaryKeyFilter?: string;
     /**
      * Template for a property with filtering conditions.
      * The stored string is directly concatenated with the WHERE clause.
@@ -81,6 +81,7 @@ interface StaticQueryStrategy {
      * Specialized select / command strategies outside of regular CRUD, e.g. for statistical queries.
      */
     [key: `${string}QueryStrategy`]: CustomQueryStrategy;
+    [key: `${string}FilteredSelectStrategy`]: SelectStrategy;
 }
 
 /**

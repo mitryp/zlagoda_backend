@@ -21,11 +21,10 @@ export type OrderParam = {
 export class StaticSqlQueryBuilder {
     public constructor(protected staticQueryStrategy: StaticQueryStrategy) {}
 
-    protected buildSelectFilters(filters: string[]): string {
-        const filteringStrategy: FilteringStrategy = this.staticQueryStrategy.selectStrategy.filteringStrategy;
+    protected buildSelectFilters(filteringStrategy: FilteringStrategy, filters: string[]): string {
         let result: string = "";
         filters.forEach((filter) => {
-            result += "\n" + filteringStrategy[filter];
+            result += "\n    " + filteringStrategy[filter];
         });
         return result;
     }
@@ -34,19 +33,9 @@ export class StaticSqlQueryBuilder {
         params: SelectBuilderParams = {
             filters: [],
             order: null,
-        } as SelectBuilderParams,
-        customSQLFilters: string = null
+        } as SelectBuilderParams
     ): string {
-        const selectStrategy: SelectStrategy = this.staticQueryStrategy.selectStrategy;
-
-        let query: string = selectStrategy.baseClause;
-        query += customSQLFilters ?? this.buildSelectFilters(params.filters);
-        if (params.order !== null) query += "\n" + selectStrategy.sortingStrategy[params.order.key][params.order.asc ? "asc" : "desc"];
-        query += ";";
-
-        console.log("Built SELECT query:\n" + query);
-
-        return query;
+        return this.buildSelectFromStrategy(this.staticQueryStrategy.selectStrategy, params);
     }
 
     public buildInsert(): string {
@@ -60,6 +49,34 @@ export class StaticSqlQueryBuilder {
     public buildCustomQuery(key: string): string {
         assert(key.endsWith("QueryStrategy")); // to prevent accidents during development
         return this.staticQueryStrategy[key] + ";";
+    }
+
+    // to reuse appropriate mechanisms in specialized queries with optional filters
+    public buildCustomFilteredSelect(key: string,
+        params: SelectBuilderParams = {
+            filters: [],
+            order: null,
+        } as SelectBuilderParams
+    ): string {
+        assert(key.endsWith("FilteredSelectStrategy"));
+        return this.buildSelectFromStrategy(this.staticQueryStrategy[key], params);
+    }
+
+    protected buildSelectFromStrategy(
+        selectStrategy: SelectStrategy,
+        params: SelectBuilderParams = {
+            filters: [],
+            order: null,
+        } as SelectBuilderParams
+    ): string {
+        let query: string = selectStrategy.baseClause;
+        query += this.buildSelectFilters(selectStrategy.filteringStrategy, params.filters);
+        if (params.order !== null) query += "\n" + selectStrategy.sortingStrategy[params.order.key][params.order.asc ? "asc" : "desc"];
+        query += ";";
+
+        console.log("Built SELECT query:\n" + query);
+
+        return query;
     }
 }
 

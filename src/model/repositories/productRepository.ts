@@ -1,6 +1,6 @@
 import { Database } from "better-sqlite3";
-import { Repository } from "./repository";
-import { IProductInput, IProductOutput, ProductPK } from "../data_types/product";
+import { FilterParam, Repository } from "./repository";
+import { IProductInput, IProductOutput, ISoldQuantityOutput, ProductPK } from "../data_types/product";
 import { QueryStrategy } from "../queryStrategy";
 import { sql } from "../dbHelpers";
 import { IShort } from "../data_types/general";
@@ -50,11 +50,36 @@ const PRODUCT_QUERY_STRATEGY: QueryStrategy = {
     shortSelectQueryStrategy: sql`
         SELECT UPC, (product_name || ' ' || manufacturer) AS desc
         FROM Product`,
+    // manager requirement 21
+    soldQuantityFilteredSelectStrategy: {
+        baseClause: sql`
+            SELECT COALESCE(SUM(product_number), 0) AS number
+            FROM Product
+                INNER JOIN Store_Product ON Product.UPC = Store_Product.UPC
+                INNER JOIN Sale ON Store_Product.id_store_product = Sale.id_store_product
+                INNER JOIN Receipt ON Sale.receipt_number = Receipt.receipt_number
+            WHERE TRUE`,
+        filteringStrategy: {
+            upcFilter: sql`
+                AND Product.UPC = ?`, // actually always present
+            dateMinFilter: sql`
+                AND print_date >= ?`,
+            dateMaxFilter: sql`
+                AND print_date <= ?`,
+        },
+        sortingStrategy: {},
+    },
 };
 
 export class ProductRepository extends Repository<ProductPK, IProductInput, IProductOutput> {
     constructor(db: Database) {
         super(db, PRODUCT_QUERY_STRATEGY);
+    }
+
+    public async quantitySold(pk: ProductPK, filters: FilterParam[] = []): Promise<ISoldQuantityOutput> {
+        filters.push({ key: "upcFilter", param: pk });
+        const row = await this.specializedFilteredSelectFirst("soldQuantityFilteredSelectStrategy", filters);
+        return { quantity: row["number"] };
     }
 
     public async allInShort(): Promise<IShort[]> {

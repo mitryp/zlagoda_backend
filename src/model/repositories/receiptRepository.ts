@@ -1,6 +1,6 @@
 import { Database } from "better-sqlite3";
 import { FilterParam, Pagination, StaticRepository } from "./repository";
-import { IReceiptInput, IReceiptOutput, ISaleInput, ISaleOutput, ReceiptPK } from "../data_types/receipt";
+import { IReceiptInput, IReceiptOutput, ISaleInput, ISaleOutput, ISumOutput, ReceiptPK } from "../data_types/receipt";
 import { StaticQueryStrategy } from "../queryStrategy";
 import { sql } from "../dbHelpers";
 import { OrderParam } from "../sqlQueryBuilder";
@@ -58,6 +58,22 @@ const RECEIPT_QUERY_STRATEGY: StaticQueryStrategy = {
     saleInsertQueryStrategy: sql`
         INSERT INTO Sale (receipt_number, id_store_product, product_number, selling_price)
         VALUES (?, ?, ?, ?)`,
+    // manager requirements 19-20
+    totalSumFilteredSelectStrategy: {
+        baseClause: sql`
+            SELECT COALESCE(SUM(sum_total), 0) AS sum_total
+            FROM Receipt
+            WHERE TRUE`,
+        filteringStrategy: {
+            dateMinFilter: sql`
+                AND print_date >= ?`,
+            dateMaxFilter: sql`
+                AND print_date <= ?`,
+            employeeIdFilter: sql`
+                AND id_employee = ?`,
+        },
+        sortingStrategy: {}
+    },
 };
 
 // this repository is a special case in several ways:
@@ -73,6 +89,11 @@ export class ReceiptRepository extends StaticRepository<ReceiptPK, IReceiptInput
         super(db, RECEIPT_QUERY_STRATEGY);
         this.storeProductRepo = new StoreProductRepository(db);
         this.clientRepo = new ClientRepository(db);
+    }
+
+    public async getCount(filters: FilterParam[] = []): Promise<ISumOutput> {
+        const row = await this.specializedFilteredSelectFirst("totalSumFilteredSelectStrategy", filters);
+        return { sum: row["sum_total"] }; // nature of the query guarantees that row cannot be null
     }
 
     public async select(filters: FilterParam[] = [], order: OrderParam = null, pagination: Pagination = { limit: 0, offset: 0 }): Promise<{ rows: IReceiptOutput[]; baseLength: number }> {

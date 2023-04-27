@@ -18,4 +18,8 @@ export interface IProductInput {
     categoryId: CategoryPK;
 }
 
+export interface ISoldQuantityOutput {
+    quantity: number;
+}
+
 export type ProductPK = string;

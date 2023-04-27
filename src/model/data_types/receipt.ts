@@ -41,4 +41,8 @@ export interface ISaleInput {
     quantity: number;
 }
 
+export interface ISumOutput {
+    sum: number;
+}
+
 export type ReceiptPK = number;

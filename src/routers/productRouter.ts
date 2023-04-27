@@ -6,6 +6,12 @@ import { ProductRepository } from "../model/repositories/productRepository";
 export function productRouter(auth: Authorizer): Router {
     const router = Router();
 
+    setupDbRoute(router, "get", "/:id/total_sold", auth.requirePosition("manager"), false, async (req, _res, db) => {
+        const repo = new ProductRepository(db);
+        const filters = parseExpectedFilters(["dateMinFilter", "dateMaxFilter"], req.query);
+        return repo.quantitySold(req.params.id, filters);
+    });
+
     // this must come first so that "short" route is registered over generic parametrized ":id" route
     setupDbRoute(router, "get", "/short", auth.requirePosition(), false, async (_req, _res, db) => {
         const repo = new ProductRepository(db);

@@ -108,6 +108,30 @@ export abstract class StaticRepository<PK, InputDTO, OutputDTO = InputDTO> {
         await DbHelpers.run(this.db, this.staticQueryBuilder.buildCustomQuery(key), "Ran specialized command with key " + key, params);
     }
 
+    protected async specializedFilteredSelect(
+        key: string,
+        filters: FilterParam[] = [],
+        order: OrderParam = null,
+        pagination: Pagination = { limit: 0, offset: 0 }
+    ): Promise<{ rows: Object[]; baseLength: number }> {
+        let [filterKeys, queryParams] = this.parseFilters(filters);
+        let rows: Object[] = await DbHelpers.select(
+            this.db,
+            this.staticQueryBuilder.buildCustomFilteredSelect(key, { filters: filterKeys, order: order }),
+            "Specialized filtered selected from DB",
+            queryParams
+        );
+        const length = rows.length;
+        if (pagination.limit > 0) rows = rows.slice(pagination.offset, pagination.offset + pagination.limit);
+        return { rows: rows, baseLength: length };
+    }
+
+    protected async specializedFilteredSelectFirst(key: string, filters: FilterParam[] = []): Promise<Object | null> {
+        let [filterKeys, queryParams] = this.parseFilters(filters);
+        const row = await DbHelpers.selectFirst(this.db, this.staticQueryBuilder.buildCustomFilteredSelect(key, { filters: filterKeys, order: null }), "Specialized filtered selected one from DB", queryParams);
+        return row;
+    }
+
     /**
      * @param filters filter objects (keys in strategy + their parameters)
      * @returns array of keys and single array of query params (order matches with key order)
