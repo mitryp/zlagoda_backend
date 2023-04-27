@@ -62,11 +62,25 @@ const CLIENT_QUERY_STRATEGY: QueryStrategy = {
     shortSelectQueryStrategy: sql`
         SELECT card_number, (cust_surname || ' ' || cust_name || (COALESCE(' ' || cust_patronymic, ''))) AS cust_fullname
         FROM Customer_Card`,
+
+    // Popov group by
+    regularCustomersQueryStrategy: sql`
+        SELECT id_employee, empl_surname, empl_name, COUNT(DISTINCT Product.id_product) as num_products_sold
+        FROM Employee
+        INNER JOIN Receipt ON Employee.id_employee = Receipt.id_employee
+        INNER JOIN Sale ON Receipt.receipt_number = Sale.receipt_number
+        GROUP BY id_employee, empl_surname, empl_name
+        HAVING COUNT(DISTINCT Product.id_product) > ?`,
+    
 };
 
 export class ClientRepository extends Repository<ClientPK, IClient, IClient> {
     constructor(db: Database) {
         super(db, CLIENT_QUERY_STRATEGY);
+    }
+
+    public async regularCustomers(minPurchases: number): Promise<Object[]> {
+        return this.specializedSelect("regularCustomersQueryStrategy", [minPurchases]);
     }
 
     public async allInShort(): Promise<IShort[]> {

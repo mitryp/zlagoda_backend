@@ -72,8 +72,26 @@ const RECEIPT_QUERY_STRATEGY: StaticQueryStrategy = {
             employeeIdFilter: sql`
                 AND id_employee = ?`,
         },
-        sortingStrategy: {}
+        sortingStrategy: {},
     },
+
+    // Verhohlyad division
+    receiptsWithAllCategoriesQueryStrategy: sql`
+        SELECT receipt_number, id_employee, employee_name, empl_surname, card_number, cust_name, cust_surname, print_date, sum_total, vat
+        FROM Receipt 
+        INNER JOIN Employee ON Receipt.id_employee = Employee.id_employee
+        LEFT OUTER JOIN Client ON Receipt.card_number = Client.card_number
+        WHERE NOT EXISTS (
+            SELECT category_number
+            FROM Product
+            INNER JOIN Category ON Category.category_number = Product.category_number
+            WHERE UPC NOT IN (
+                SELECT UPC
+                FROM Sale
+                INNER JOIN Store_Product ON Store_Product.id_product = Sale.id_product
+                WHERE Sale.check_number = Receipt.check_number
+            )
+        )`,
 };
 
 // this repository is a special case in several ways:
@@ -89,6 +107,10 @@ export class ReceiptRepository extends StaticRepository<ReceiptPK, IReceiptInput
         super(db, RECEIPT_QUERY_STRATEGY);
         this.storeProductRepo = new StoreProductRepository(db);
         this.clientRepo = new ClientRepository(db);
+    }
+
+    public async receiptsWithAllCategories(): Promise<Object[]> {
+        return this.specializedSelect("receiptsWithAllCategoriesQueryStrategy");
     }
 
     public async getCount(filters: FilterParam[] = []): Promise<ISumOutput> {

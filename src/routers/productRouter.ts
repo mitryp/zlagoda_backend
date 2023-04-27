@@ -6,6 +6,23 @@ import { ProductRepository } from "../model/repositories/productRepository";
 export function productRouter(auth: Authorizer): Router {
     const router = Router();
 
+    setupDbRoute(router, "get", "/sold_for", auth.requirePosition("manager"), false, async (req, _res, db) => {
+        const repo = new ProductRepository(db);
+        const minTotal: number = req.query.minTotalFilter ? parseInt(req.query.minTotalFilter as string) : 0; // without specification, the filter is for total sold price to be >= 0, which is all products
+        return repo.soldFor(minTotal);
+    });
+
+    setupDbRoute(router, "get", "/purchased_by_all_clients", auth.requirePosition("manager"), false, async (req, _res, db) => {
+        const repo = new ProductRepository(db);
+        const surnameSearchPart = req.query.clientSurnameFilter ? req.query.clientSurnameFilter as string : "";
+        return repo.purchasedByAllClients(surnameSearchPart);
+    });
+
+    setupDbRoute(router, "get", "/sold_by_all_cashiers", auth.requirePosition("manager"), false, async (req, _res, db) => {
+        const repo = new ProductRepository(db);
+        return repo.soldByAllCashiers();
+    });
+
     setupDbRoute(router, "get", "/:id/total_sold", auth.requirePosition("manager"), false, async (req, _res, db) => {
         const repo = new ProductRepository(db);
         const filters = parseExpectedFilters(["dateMinFilter", "dateMaxFilter"], req.query);

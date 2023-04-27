@@ -83,11 +83,24 @@ const EMPLOYEE_QUERY_STRATEGY: QueryStrategy = {
         SELECT id_employee, (empl_surname || ' ' || empl_name || (COALESCE(' ' || empl_patronymic, ''))) AS empl_fullname
         FROM Employee
         WHERE empl_role = 'cashier'`,
+
+    // Verhohlyad group by
+    bestCashiersQueryStrategy: sql`
+        SELECT id_employee, empl_surname, empl_name, COUNT(DISTINCT Product.id_product) as num_products_sold
+        FROM Employee
+        INNER JOIN Receipt ON Employee.id_employee = Receipt.id_employee
+        INNER JOIN Sale ON Receipt.receipt_number = Sale.receipt_number
+        GROUP BY id_employee, empl_surname, empl_name
+        HAVING COUNT(DISTINCT Product.id_product) > ?`,
 };
 
 export class EmployeeRepository extends Repository<EmployeePK, IEmployeeInput, IEmployeeOutput> {
     constructor(db: Database) {
         super(db, EMPLOYEE_QUERY_STRATEGY);
+    }
+
+    public async bestCashiers(minSales: number): Promise<Object[]> {
+        return this.specializedSelect("bestCashiersQueryStrategy", [minSales]);
     }
 
     public async cashiersInShort(): Promise<IShort[]> {

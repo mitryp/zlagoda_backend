@@ -1,6 +1,6 @@
 import { Database } from "better-sqlite3";
 import { FilterParam, Repository } from "./repository";
-import { IProductInput, IProductOutput, ISoldQuantityOutput, ProductPK } from "../data_types/product";
+import { IProductInput, IProductOutput, IPurchasedByAllClientsOutput, ISoldForOutput, ISoldQuantityOutput, ProductPK } from "../data_types/product";
 import { QueryStrategy } from "../queryStrategy";
 import { sql } from "../dbHelpers";
 import { IShort } from "../data_types/general";
@@ -69,11 +69,99 @@ const PRODUCT_QUERY_STRATEGY: QueryStrategy = {
         },
         sortingStrategy: {},
     },
+    // Novak group by
+    soldForQueryStrategy: sql`
+        SELECT Product.UPC, product_name, Product.category_number, category_name, SUM(COALESCE(Sale.selling_price * (100 - percent) * Sale.product_number / 100, 0)) AS sold_for
+        FROM Product
+            INNER JOIN Category ON Product.category_number = Category.category_number
+            LEFT OUTER JOIN Store_Product ON Product.UPC = Store_Product.UPC
+            LEFT OUTER JOIN Sale ON Store_Product.id_store_product = Sale.id_store_product
+            LEFT OUTER JOIN Receipt ON Receipt.receipt_number = Sale.receipt_number
+        GROUP BY Product.UPC, product_name, Product.category_number, category_name
+        HAVING sold_for >= ?
+        ORDER BY sold_for DESC`,
+    // Novak division
+    purchasedByAllClientsQueryStrategy: sql`
+        SELECT Product.UPC, product_name, Product.category_number, category_name
+        FROM Product
+            INNER JOIN Category ON Product.category_number = Category.category_number
+        WHERE Product.UPC IN (
+            SELECT UPC
+            FROM Store_Product
+            WHERE id_store_product IN (
+                SELECT id_store_product
+                FROM Sale
+                    INNER JOIN Receipt ON Sale.receipt_number = Receipt.receipt_number
+                    INNER JOIN Customer_Card ON Customer_Card.card_number = Receipt.card_number
+            )
+            AND NOT EXISTS (
+                SELECT *
+                FROM Customer_Card
+                WHERE lower(cust_surname) LIKE '%' || ? || '%'
+                AND card_number NOT IN (
+                    SELECT card_number
+                    FROM Receipt
+                        INNER JOIN Sale ON Sale.receipt_number = Receipt.receipt_number
+                    WHERE id_store_product = Store_Product.id_store_product
+                )
+            )
+        )
+        ORDER BY product_name ASC`,
+    
+    // Popov division
+    soldByAllCashiersQueryStrategy: sql`
+        SELECT UPC, product_name, category_number, category_name, characteristics
+        FROM Product
+        INNER JOIN Category ON Product.category_number = Category.category_number
+        WHERE UPC in (
+            SELECT UPC
+            FROM Sale
+            INNER JOIN Store_Product ON Store_Product.id_product = Sale.id_product
+            INNER JOIN Receipt on Receipt.receipt_number = Sale.receipt_number
+            WHERE NOT EXISTS (
+                SELECT id_employee
+                FROM Receipt
+                INNER JOIN Sale ON Sale.receipt_number = Receipt.receipt_number
+                WHERE UPC NOT IN (
+                SELECT UPC
+                FROM Sale
+                INNER JOIN Store_Product ON Store_Product.id_product = Sale.id_product
+                WHERE Receipt.receipt_number = Sale.receipt_number
+                )
+            )
+        )`
 };
 
 export class ProductRepository extends Repository<ProductPK, IProductInput, IProductOutput> {
     constructor(db: Database) {
         super(db, PRODUCT_QUERY_STRATEGY);
+    }
+
+    public async soldFor(minTotal: number): Promise<ISoldForOutput[]> {
+        const rows = await this.specializedSelect("soldForQueryStrategy", [minTotal]);
+        return rows.map((row): ISoldForOutput => {
+            return {
+                upc: row["UPC"],
+                productName: row["product_name"],
+                categoryName: row["category_name"],
+                soldFor: row["sold_for"],
+            };
+        });
+    }
+
+    public async purchasedByAllClients(clientSurname: string): Promise<IPurchasedByAllClientsOutput[]> {
+        const rows = await this.specializedSelect("purchasedByAllClientsQueryStrategy", [clientSurname]);
+        return rows.map((row): IPurchasedByAllClientsOutput => {
+            return {
+                upc: row["UPC"],
+                productName: row["product_name"],
+                categoryName: row["category_name"],
+            };
+        });
+    }
+
+    public async soldByAllCashiers(): Promise<Object[]> {
+        return this.specializedSelect("soldByAllCashiersQueryStrategy");
     }
 
     public async quantitySold(pk: ProductPK, filters: FilterParam[] = []): Promise<ISoldQuantityOutput> {

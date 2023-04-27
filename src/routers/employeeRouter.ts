@@ -10,6 +10,11 @@ import { forbidden } from "../common/responses";
 export function employeeRouter(authService: AuthenticationService, auth: Authorizer): Router {
     const router = Router();
 
+    setupDbRoute(router, "get", "/best_cashiers", auth.requirePosition(), false, async (req, _res, db) => {
+        const repo = new EmployeeRepository(db);
+        return await repo.bestCashiers(parseInt(req.query.minSold as string));
+    });
+
     setupDbRoute(router, "get", "/me", auth.requirePosition(), false, async (req, _res, db) => {
         const user = await fetchUser(req, authService);
         const repo = new EmployeeRepository(db);

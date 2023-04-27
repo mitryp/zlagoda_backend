@@ -6,11 +6,15 @@ import { ClientRepository } from "../model/repositories/clientRepository";
 export function clientRouter(auth: Authorizer): Router {
     const router = Router();
 
+    setupDbRoute(router, "get", "/regular_clients", auth.requirePosition("manager"), false, async (req, _res, db) => {
+        const repo = new ClientRepository(db);
+        return repo.regularCustomers(parseInt(req.query.minPurchases as string));
+    });
+
     setupDbRoute(router, "get", "/short", auth.requirePosition(), false, async (_req, _res, db) => {
         const repo = new ClientRepository(db);
         return repo.allInShort();
     });
-
     setupDbRoute(router, "get", "", auth.requirePosition(), false, async (req, res, db) => {
         const repo = new ClientRepository(db);
         const { order, pagination } = parseCollectionQueryParams(req.query);

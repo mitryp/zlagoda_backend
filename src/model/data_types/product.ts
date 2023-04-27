@@ -22,4 +22,18 @@ export interface ISoldQuantityOutput {
     quantity: number;
 }
 
+// Novak grouping
+export interface ISoldForOutput {
+    upc: ProductPK;
+    productName: string;
+    categoryName: string;
+    soldFor: number;
+}
+// Novak division
+export interface IPurchasedByAllClientsOutput {
+    upc: ProductPK;
+    productName: string;
+    categoryName: string;
+}
+
 export type ProductPK = string;
