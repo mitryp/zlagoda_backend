@@ -82,27 +82,29 @@ const PRODUCT_QUERY_STRATEGY: QueryStrategy = {
         ORDER BY sold_for DESC`,
     // Novak division
     purchasedByAllClientsQueryStrategy: sql`
-        SELECT Product.UPC, product_name, Product.category_number, category_name
+        SELECT UPC, product_name, Product.category_number, category_name
         FROM Product
             INNER JOIN Category ON Product.category_number = Category.category_number
-        WHERE Product.UPC IN (
-            SELECT UPC
-            FROM Store_Product
-            WHERE id_store_product IN (
-                SELECT id_store_product
-                FROM Sale
-                    INNER JOIN Receipt ON Sale.receipt_number = Receipt.receipt_number
-                    INNER JOIN Customer_Card ON Customer_Card.card_number = Receipt.card_number
-            )
-            AND NOT EXISTS (
-                SELECT *
-                FROM Customer_Card
-                WHERE lower(cust_surname) LIKE '%' || lower(?) || '%'
-                AND card_number NOT IN (
-                    SELECT card_number
-                    FROM Receipt
-                        INNER JOIN Sale ON Sale.receipt_number = Receipt.receipt_number
-                    WHERE id_store_product = Store_Product.id_store_product
+        WHERE EXISTS (
+            SELECT *
+            FROM Customer_Card
+            WHERE lower(cust_surname) LIKE '%' || lower(?) || '%'
+        )
+        AND NOT EXISTS (
+            SELECT *
+            FROM Customer_Card
+            WHERE lower(cust_surname) LIKE '%' || lower(?) || '%'
+            AND card_number NOT IN (
+                SELECT card_number
+                FROM Receipt
+                WHERE card_number IS NOT NULL AND receipt_number IN (
+                    SELECT receipt_number
+                    FROM Sale
+                    WHERE id_store_product IN (
+                        SELECT id_store_product
+                        FROM Store_Product
+                        WHERE UPC = Product.UPC
+                    )
                 )
             )
         )
@@ -150,7 +152,7 @@ export class ProductRepository extends Repository<ProductPK, IProductInput, IPro
     }
 
     public async purchasedByAllClients(clientSurname: string): Promise<IPurchasedByAllClientsOutput[]> {
-        const rows = await this.specializedSelect("purchasedByAllClientsQueryStrategy", [clientSurname]);
+        const rows = await this.specializedSelect("purchasedByAllClientsQueryStrategy", [clientSurname, clientSurname]);
         return rows.map((row): IPurchasedByAllClientsOutput => {
             return {
                 upc: row["UPC"],
