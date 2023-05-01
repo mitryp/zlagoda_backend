@@ -112,24 +112,19 @@ const PRODUCT_QUERY_STRATEGY: QueryStrategy = {
     
     // Popov division
     soldByAllCashiersQueryStrategy: sql`
-        SELECT UPC, product_name, category_number, category_name, characteristics
+        SELECT Product.UPC, Product.product_name, Product.manufacturer
         FROM Product
-        INNER JOIN Category ON Product.category_number = Category.category_number
-        WHERE UPC in (
-            SELECT UPC
-            FROM Sale
-            INNER JOIN Store_Product ON Store_Product.id_product = Sale.id_product
-            INNER JOIN Receipt on Receipt.receipt_number = Sale.receipt_number
-            WHERE NOT EXISTS (
-                SELECT id_employee
-                FROM Receipt
-                INNER JOIN Sale ON Sale.receipt_number = Receipt.receipt_number
-                WHERE UPC NOT IN (
-                SELECT UPC
-                FROM Sale
-                INNER JOIN Store_Product ON Store_Product.id_product = Sale.id_product
-                WHERE Receipt.receipt_number = Sale.receipt_number
-                )
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM Employee
+            WHERE Employee.empl_role = 'cashier'
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM Receipt
+                    INNER JOIN Sale ON Sale.receipt_number = Receipt.receipt_number
+                    INNER JOIN Store_Product ON Store_Product.id_store_product = Sale.id_store_product
+                    WHERE Store_Product.UPC = Product.UPC 
+                        AND Receipt.id_employee = Employee.id_employee
             )
         )`
 };
