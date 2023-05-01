@@ -84,14 +84,15 @@ const EMPLOYEE_QUERY_STRATEGY: QueryStrategy = {
         FROM Employee
         WHERE empl_role = 'cashier'`,
 
-    // Verhohlyad group by
+    // Verkhohliad group by
     bestCashiersQueryStrategy: sql`
-        SELECT id_employee, empl_surname, empl_name, COUNT(DISTINCT Product.id_product) as num_products_sold
+        SELECT Employee.id_employee, Employee.empl_surname, Employee.empl_name, COUNT(DISTINCT Store_Product.UPC) as num_products_sold
         FROM Employee
         INNER JOIN Receipt ON Employee.id_employee = Receipt.id_employee
         INNER JOIN Sale ON Receipt.receipt_number = Sale.receipt_number
-        GROUP BY id_employee, empl_surname, empl_name
-        HAVING COUNT(DISTINCT Product.id_product) > ?`,
+        INNER JOIN Store_Product ON Sale.id_store_product = Store_Product.id_store_product
+        GROUP BY Employee.id_employee, Employee.empl_surname, Employee.empl_name
+        HAVING COUNT(DISTINCT Store_Product.UPC) >= ?`,
 };
 
 export class EmployeeRepository extends Repository<EmployeePK, IEmployeeInput, IEmployeeOutput> {
