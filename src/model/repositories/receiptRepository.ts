@@ -77,21 +77,21 @@ const RECEIPT_QUERY_STRATEGY: StaticQueryStrategy = {
 
     // Verhohlyad division
     receiptsWithAllCategoriesQueryStrategy: sql`
-        SELECT receipt_number, id_employee, employee_name, empl_surname, card_number, cust_name, cust_surname, print_date, sum_total, vat
-        FROM Receipt 
+        SELECT Receipt.receipt_number, Employee.id_employee, Employee.empl_name, Employee.empl_surname, Customer_Card.card_number, Customer_Card.cust_name, Customer_Card.cust_surname, Receipt.print_date, Receipt.sum_total, Receipt.vat
+        FROM Receipt
         INNER JOIN Employee ON Receipt.id_employee = Employee.id_employee
-        LEFT OUTER JOIN Client ON Receipt.card_number = Client.card_number
+        LEFT OUTER JOIN Customer_Card ON Receipt.card_number = Customer_Card.card_number
         WHERE NOT EXISTS (
-            SELECT category_number
-            FROM Product
-            INNER JOIN Category ON Category.category_number = Product.category_number
-            WHERE UPC NOT IN (
-                SELECT UPC
+            SELECT Category.category_number
+            FROM Category
+            WHERE Category.category_number NOT IN (
+                SELECT Product.category_number
                 FROM Sale
-                INNER JOIN Store_Product ON Store_Product.id_product = Sale.id_product
-                WHERE Sale.check_number = Receipt.check_number
+                INNER JOIN Store_Product ON Store_Product.id_store_product = Sale.id_store_product
+                INNER JOIN Product ON Product.UPC = Store_Product.UPC
+                WHERE Sale.receipt_number = Receipt.receipt_number
             )
-        )`,
+        );`,
 };
 
 // this repository is a special case in several ways:
