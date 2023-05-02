@@ -78,7 +78,7 @@ const PRODUCT_QUERY_STRATEGY: QueryStrategy = {
             LEFT OUTER JOIN Sale ON Store_Product.id_store_product = Sale.id_store_product
             LEFT OUTER JOIN Receipt ON Receipt.receipt_number = Sale.receipt_number
         GROUP BY Product.UPC, product_name, Product.category_number, category_name
-        HAVING sold_for >= ?
+        HAVING SUM(COALESCE(Sale.selling_price * (100 - percent) * Sale.product_number / 100, 0)) >= ?
         ORDER BY sold_for DESC`,
     // Novak division
     purchasedByAllClientsQueryStrategy: sql`
