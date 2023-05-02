@@ -48,7 +48,7 @@ export function setupDbRoute<T>(router: Router, method: RequestMethod, route: st
             if (res.headersSent) return;
             if (e instanceof SqliteError) {
                 const err = e;
-                if (err.code.startsWith("SQLITE_CONSTRAINT")) dbViolation(res, "Операція не може бути безпечно виконана з підтримкою валідності зв'язків з іншими сутностями");
+                if (err.code.startsWith("SQLITE_CONSTRAINT")) dbViolation(res, "Операція не може бути безпечно виконана з підтримкою валідності інформації в базі даних");
                 else if (err.code.startsWith("CORPORATE_INTEGRITY_CONSTRAINT")) dbViolation(res, err.message as string);
             }
             else internalError(res);
