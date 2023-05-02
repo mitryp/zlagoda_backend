@@ -84,7 +84,7 @@ const EMPLOYEE_QUERY_STRATEGY: QueryStrategy = {
         FROM Employee
         WHERE empl_role = 'cashier'`,
 
-    // Verkhohliad group by
+    // Popov group by
     bestCashiersQueryStrategy: sql`
         SELECT Employee.id_employee, Employee.empl_surname, Employee.empl_name, COUNT(DISTINCT Store_Product.UPC) as num_products_sold
         FROM Employee

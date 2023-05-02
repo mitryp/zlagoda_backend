@@ -62,8 +62,8 @@ const CLIENT_QUERY_STRATEGY: QueryStrategy = {
     shortSelectQueryStrategy: sql`
         SELECT card_number, (cust_surname || ' ' || cust_name || (COALESCE(' ' || cust_patronymic, ''))) AS cust_fullname
         FROM Customer_Card`,
-
-    // Popov group by
+    
+    // Verkhohliad group by
     regularCustomersQueryStrategy: sql`
         SELECT Customer_Card.card_number, cust_surname, cust_name, COUNT(DISTINCT receipt_number) as total_receipts
         FROM Customer_Card
