@@ -17,7 +17,6 @@ export class DbHelpers {
             db.prepare("PRAGMA foreign_keys = ON").run();
             // register custom lower and upper functions to add case support for unicode (particularly cyrillic), because sqlite does not provide that by default
             db.function("lower", (str: string) => { return str.toLocaleLowerCase(); });
-            db.function("upper", (str: string) => { return str.toLocaleLowerCase(); });
             console.log(successMsg);
             return db;
         }
