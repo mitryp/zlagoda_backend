@@ -71,7 +71,7 @@ const PRODUCT_QUERY_STRATEGY: QueryStrategy = {
     },
     // Novak group by
     soldForQueryStrategy: sql`
-        SELECT Product.UPC, product_name, Product.category_number, category_name, SUM(COALESCE(Sale.selling_price * (100 - percent) * Sale.product_number / 100, 0)) AS sold_for
+        SELECT Product.UPC, product_name, category_name, SUM(COALESCE(Sale.selling_price * (100 - percent) * Sale.product_number / 100, 0)) AS sold_for
         FROM Product
             INNER JOIN Category ON Product.category_number = Category.category_number
             LEFT OUTER JOIN Store_Product ON Product.UPC = Store_Product.UPC
@@ -82,7 +82,7 @@ const PRODUCT_QUERY_STRATEGY: QueryStrategy = {
         ORDER BY sold_for DESC`,
     // Novak division
     purchasedByAllClientsQueryStrategy: sql`
-        SELECT UPC, product_name, Product.category_number, category_name
+        SELECT UPC, product_name, category_name
         FROM Product
             INNER JOIN Category ON Product.category_number = Category.category_number
         WHERE EXISTS (
