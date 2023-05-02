@@ -75,7 +75,7 @@ const RECEIPT_QUERY_STRATEGY: StaticQueryStrategy = {
         sortingStrategy: {},
     },
 
-    // Verhohlyad division
+    // Verkhohliad division
     receiptsWithAllCategoriesQueryStrategy: sql`
         SELECT Receipt.receipt_number, Employee.id_employee, Employee.empl_name, Employee.empl_surname, Customer_Card.card_number, Customer_Card.cust_name, Customer_Card.cust_surname, Receipt.print_date, Receipt.sum_total, Receipt.vat
         FROM Receipt
